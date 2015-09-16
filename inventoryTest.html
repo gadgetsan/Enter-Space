@@ -1,0 +1,109 @@
+<html>
+	<head>
+		<title>My first Three.js app</title>
+		<link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+        <style>
+            body { margin: 0; }
+            canvas { width: 10%; height: 10% }
+
+            .inventory{
+                width:272px;
+                height:272px;
+                background-color:rgba(255, 255, 255, .5);
+                border: solid 1px #999999;
+                position:fixed;
+                margin-left:-136px; /* half of width */
+                margin-top:-136px;  /* half of height */
+                top:50%;
+                left:50%;
+            }
+            .item{
+                padding:0px;
+                margin: 0px;
+                width:30px;
+                height:30px;
+                filter: hue-rotate(30deg);
+                -webkit-filter: hue-rotate(30deg);
+            }
+            .quantity{
+                padding:0px;
+                margin: 0px;
+                position:relative;
+                font-family: 'Roboto', sans-serif;
+                color: #FFFFFF;
+                font-size: 12px;
+                text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+                top: -14px;
+                left: 2px;
+            }
+
+			.moveable{
+    			z-index: 99;
+			}
+
+            .inventory div{
+                padding:0px;
+                margin: 0px;
+            }
+
+            .inventory li {
+                width: 30px;
+                height: 30px;
+                border: 1px solid #999999;
+                display: -moz-inline-stack;
+                display: inline-block;
+                vertical-align: middle;
+                text-align: middle;
+                margin: 1px;
+                padding: 0px;
+                *display: inline;
+            }
+        </style>
+    </head>
+    <body>
+		<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+		<script src="external/js/three.min.js"></script>
+		<script src="external/js/interact-1.2.4.min.js"></script>
+        <script src="external/js/FirstPersonControls.js"></script>
+        <script src="external/js/PointerLockControls.js"></script>
+        <script src="external/js/MarchingCubes.js"></script>
+        <script src="external/physijs/physi.js"></script>
+
+		<script>
+
+		var onKeyDown = function ( event ) {
+
+			switch ( event.keyCode ) {
+				case 69: // e
+					//alert('derp');
+					$( ".inventory" ).toggle("slow");
+					break;
+			}
+		}
+				document.addEventListener( 'keydown', onKeyDown, false );
+
+
+			var inventory;
+			var invManager;
+			$( document ).ready(function() {
+				invManager = new InventoriesManager();
+				inventory = new Inventory(40, "numberOne");
+				inventory.moveLeft();
+				inventory2 = new Inventory(8, "numberTwo");
+				inventory2.moveRight();
+				invManager.Add(inventory);
+				invManager.Add(inventory2);
+				inventory.addItem("sqr", 9999, 10);
+				//inventory.addItem("sqr", 8888, 20);
+				//inventory.addItem("sqr", 1, 9);
+			});
+		</script>
+		<div>
+			<div class="inventory" id="numberOne">
+			</div>
+			<div class="inventory" id="numberTwo">
+			</div>
+		</div>
+		<script src="src/Inventory.js"></script>
+    </body>
+</html>

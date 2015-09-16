@@ -1,0 +1,7 @@
+[11/Aug/2015:13:02:42 -0400] Failed to bind the socket, error #50.
+
+Probable reason is that another daemon is already running on the same port (80).
+[12/Aug/2015:09:02:07 -0400] Failed to bind the socket, error #50.
+
+Probable reason is that another daemon is already running on the same port (80).
+[05/Sep/2015:10:43:24 -0400] access to C:\Users\Stéphane\OneDrive\DEV\EnterSpace\index.html failed for 127.0.0.1, reason: The system cannot find the file specified
