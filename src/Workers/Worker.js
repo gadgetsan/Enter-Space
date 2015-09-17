@@ -140,103 +140,53 @@ self.compressData = function(data){
 self.GenerateInitialChunkList = function(data){
 
     //l'emplacement ou commence l'utilisateur, elle peut changé mais au depart...
-    chunkLocation = data[0];
+    planetLocation = data[0];
 
-    //les différentes précision de la grille (la premiere est la plus proche de l'utilisateur)
-    precisions = data[1];
+    //la taille de la plus petite chunk
+    chunkSize = data[1];
 
-    //les distances des différentes précision (en quantité de chunk)
-    distances = data[2];
+    //la taille (en unité) ou la précision de la chunk
+    chunkLength = data[2];
 
-    //la taille des chunks
-    chunksSize = data[3];
+    //la taille (en unité) ou la précision de la chunk
+    precisions= data[3];
 
-
-    priorityQueues = [[], [], [], [], []];
+    priorityQueues = [[]];
 
     priorityQueues[0].push({
             type: 'update',
             location: [0, 0, 0],
-            length: precisions[0]
+            size: chunkSize,
+            length: chunkLength
     });
-    //on va aller chercher la plus grosse distance
-    highestDistance = distances[distances.length-1];
-
-    var pivotData = [
-        [[0, -1, 0], [-1,0,0], [0,0,-1]],
-        [[0, 1, 0], [1,0,0], [0,0,1]],
-        [[-1, 0, 0], [0,-1,0], [0,0,-1]],
-        [[1, 0, 0], [0,1,0], [0,0,1]],
-        [[0, 0, -1], [-1,0,0], [0,1,0]],
-        [[0, 0, 1], [1,0,0], [0,1,0]],
+    var updateLocations = [
+        [-1,-1,-1], [-1,-1,0], [-1,-1,1],
+        [-1,0,-1], [-1,0,0], [-1,0,1],
+        [-1,1,-1], [-1,1,0], [-1,1,1],
+        [0,-1,-1], [0,-1,0], [0,-1,1],
+        [0,0,-1], [0,0,1],
+        [0,1,-1], [0,1,0], [0,1,1],
+        [1,-1,-1], [1,-1,0], [1,-1,1],
+        [1,0,-1], [1,0,0], [1,0,1],
+        [1,1,-1], [1,1,0], [1,1,1],
     ]
 
-    for(var i=1; i<=highestDistance;i++){
-        //pour chaque distance on a un emplacement 'pivot' autour duquel on va aller prendre tout les emplacement
-        for(var j=0; j<6; j++){
-            for(var x=-i; x<=i; x++){
-                for(var y=-i; y<=i; y++){
-                    var locX = (pivotData[j][0][0] * i) + (pivotData[j][1][0] *x) + (pivotData[j][2][0] *y);
-                    var locY = (pivotData[j][0][1] * i) + (pivotData[j][1][1] *x) + (pivotData[j][2][1] *y);
-                    var locZ = (pivotData[j][0][2] * i) + (pivotData[j][1][2] *x) + (pivotData[j][2][2] *y);
-
-                    var precisionDistance = 0;
-                    var locationPower = locX*locX +(locY/hnu)*(locY/hnu) + locZ*locZ;
-/*
-                    console.log("testing " + [locX, locY, locZ]);
-                    console.log("location " + locationPower);
-                    console.log("========================");
-*/
-                    while(precisionDistance < distances.length ){
-                        var distancePower = distances[precisionDistance] * distances[precisionDistance];
-                        if(locationPower <= distancePower){
-                            priorityQueues[precisionDistance+2].push({
-                                type: 'update',
-                                location: [locX, locY, locZ],
-                                length: precisions[precisionDistance]
-                            });
-                            break;
-                        }
-                        precisionDistance++;
-                    }
-                }
-            }
+    for(var p=0; p<precisions; p++){
+        var currentChunkSize = chunkSize * Math.pow(3, p);
+        priorityQueues.push([]);
+        for(var l=0; l<updateLocations.length;l++){
+            priorityQueues[p].push({
+                    type: 'update',
+                    location: [updateLocations[l][0]*currentChunkSize + planetLocation[0],
+                                updateLocations[l][1]*currentChunkSize + planetLocation[1],
+                                updateLocations[l][2]*currentChunkSize + planetLocation[2]],
+                    size: currentChunkSize,
+                    length: chunkLength
+            });
         }
     }
 
 
-
-/*
-    for(var i=-highestDistance; i<=highestDistance;i++){
-        for(var j=-highestDistance; j<=highestDistance;j++){
-            for(var k=-highestDistance; k<=highestDistance;k++){
-                var precisionDistance = 0;
-                var locationPower = i*i +j*j + k*k;
-                while(precisionDistance < distances.length ){
-                    var distancePower = distances[precisionDistance] * distances[precisionDistance];
-                    if(locationPower < distancePower){
-                        priorityQueues[precisionDistance].push({
-                            type: 'update',
-                            location: [i, j, k],
-                            length: precisions[precisionDistance]
-                        });
-                        break;
-                    }
-                    precisionDistance++;
-                }
-            }
-        }
-    }
-    */
-/*
-    console.log("INITIAL: ");
-    for(var i=0; i<priorityQueues.length; i++){
-        console.log("prio " + i + ": " + priorityQueues[i].length);
-        for(var j=0; j<priorityQueues[i].length; j++){
-            console.log("prio " + i + ": "+priorityQueues[i][j].location[0]+ ", " +priorityQueues[i][j].location[1]+ ", " +priorityQueues[i][j].location[2]);
-        }
-    }
-*/
     self.postMessage({
         type: 'result',
         id: self.id,
@@ -246,174 +196,110 @@ self.GenerateInitialChunkList = function(data){
 }
 
 self.GenerateUpdateChunkList = function(data){
-    //les différentes précision de la grille (la premiere est la plus proche de l'utilisateur)
-    var precisions = data[0];
 
-    //les distances des différentes précision (en quantité de chunk)
-    var distances = data[1];
+    //l'emplacement ou commence l'utilisateur, elle peut changé mais au depart...
+    planetLocation = data[0];
 
-    //le deplacement (en chunk) de l'utilisateur
-    var move = data[2];
+    //la taille de la plus petite chunk
+    chunkSize = data[1];
 
-    //le nouvel emplacement
-    var location = data[3];
-    var oldLocation = [location[0]-move[0],location[1]-move[1],location[2]-move[2]];
-    //console.log(location);
-    //console.log(oldLocation);
+    //la taille (en unité) ou la précision de la chunk
+    chunkLength = data[2];
 
-    priorityQueues = [[], [], [], [], []];
+    //la taille (en unité) ou la précision de la chunk
+    precisions= data[3];
 
-    //on va aller chercher la plus grosse distance et ajouter un parce qu'on veut aussi calculer ce qu'il y a avant le deplacement
-    highestDistance = distances[distances.length-1];
-/*
-    priorityQueues[0].push({
-        type: 'update',
-        location: location,
-        length: precisions[0]
-    });
-*/
-        var pivotData = [
-            [[0, -1, 0], [-1,0,0], [0,0,-1]],
-            [[0, 1, 0], [1,0,0], [0,0,1]],
-            [[-1, 0, 0], [0,-1,0], [0,0,-1]],
-            [[1, 0, 0], [0,1,0], [0,0,1]],
-            [[0, 0, -1], [-1,0,0], [0,-1,0]],
-            [[0, 0, 1], [1,0,0], [0,1,0]],
-        ]
+    priorityQueues = [[]];
 
-        for(var i=1; i<=highestDistance;i++){
-            //pour chaque distance on a un emplacement 'pivot' autour duquel on va aller prendre tout les emplacement
-            for(var j=0; j<6; j++){
-                for(var x=-i; x<=i; x++){
-                    for(var y=-i; y<=i; y++){
-                        var locX = location[0] + (pivotData[j][0][0] * i) + (pivotData[j][1][0] *x) + (pivotData[j][2][0] *y);
-                        var locY = location[1] + (pivotData[j][0][1] * i) + (pivotData[j][1][1] *x) + (pivotData[j][2][1] *y);
-                        var locZ = location[2] + (pivotData[j][0][2] * i) + (pivotData[j][1][2] *x) + (pivotData[j][2][2] *y);
+    //le nouvel emplacement ainsi que le mouvement
+    var movement = data[4];
+    var newChunk = data[5];
+    var toUpdate = [];
 
-                        var precisionDistance = 0;
-                        var newDistance = (locX-location[0])*(locX-location[0]) +((locY-location[1])/hnu)*((locY-location[1])/hnu) + (locZ-location[2])*(locZ-location[2]);
-                        var oldDistance = (locX-oldLocation[0])*(locX-oldLocation[0]) +((locY-oldLocation[1])/hnu)*((locY-oldLocation[1])/hnu) + (locZ-oldLocation[2])*(locZ-oldLocation[2]);
+    //la direction
+    for(var i=1; i<3;i++){
+        //la taille du mouvement
+        for(var j=1; j<=Math.abs(movement[i]);j++){
 
-/*
-                        console.log("oldLoc " + oldLocation);
-                        console.log("newLoc " + location);
-                        console.log("current " + [locX, locY, locZ]);
-                        console.log("old " + oldDistance);
-                        console.log("new " + newDistance);
-                        console.log("========================");
-*/
-
-                        while(precisionDistance <= distances.length ){
-                            var distancePower = (distances[precisionDistance]) * (distances[precisionDistance])
-
-                            //on va regarder si il y a eu un changement dans le treshhold
-                            if(oldDistance <= distancePower && newDistance > distancePower){
-                                //elle n'est plus dans cette precision, on doit l'enlever
-
-                                if(precisionDistance+1 >= precisions.length){
-                                    priorityQueues[distances.length+1].push({
-                                        type: 'update',
-                                        location: [locX, locY, locZ],
-                                        length: 0
-                                    });
-
-                                }else{
-                                    priorityQueues[distances.length+1].push({
-                                        type: 'update',
-                                        location: [locX, locY, locZ],
-                                        length: precisions[precisionDistance+1]
-                                    });
-                                }
-                                break;
-
-                            }else if(newDistance <= distancePower && oldDistance > distancePower){
-
-                                priorityQueues[precisionDistance+1].push({
-                                    type: 'update',
-                                    location: [locX, locY, locZ],
-                                    length: precisions[precisionDistance]
-                                });
-                            }
-                            precisionDistance++;
-                        }
-                    }
-                }
-            }
-        }
-/*
-    for(var i=-highestDistance; i<=highestDistance;i++){
-        for(var j=-highestDistance; j<=highestDistance;j++){
-            for(var k=-highestDistance; k<=highestDistance;k++){
-                var precisionDistance = 0;
-                var newDistance = (i-location[0])*(i-location[0]) +(j-location[1])*(j-location[1]) + (k-location[2])*(k-location[2]);
-                var oldDistance = (i-oldLocation[0])*(i-oldLocation[0]) +(j-oldLocation[1])*(j-oldLocation[1]) + (k-oldLocation[2])*(k-oldLocation[2]);
-                while(precisionDistance < distances.length ){
-                    var distancePower = distances[precisionDistance] * distances[precisionDistance];
-
-                    //on va regarder si il y a eu un changement dans le treshhold
-                    if(oldDistance < distancePower && newDistance >= distancePower){
-                        //elle n'est plus dans cette precision, on doit l'enlever
-                        if(precisionDistance+1 >= precisions.length){
-                            priorityQueues[4].push({
-                                type: 'update',
-                                location: [i, j, k],
-                                length: 0
-                            });
-
+            for(var l=-1; l<=1;l++){
+                for(var m=-1; m<=1;m++){
+                    var chunkLocation = [];
+                    var first = true;
+                    for(var n=0; n<3;n++){
+                        if(movement[n] != 0){
+                            var direction = movement[n]<0? -1: 1;
+                            chunkLocation[n] = direction*j;
+                        }else if(first){
+                            chunkLocation[n] = l;
+                            first = false;
                         }else{
-                            priorityQueues[4].push({
-                                type: 'update',
-                                location: [i, j, k],
-                                length: precisions[precisionDistance+1]
-                            });
+                            chunkLocation[n] = m;
                         }
-                        break;
-                    }else if(newDistance <= distancePower && oldDistance > distancePower){
-
-                        priorityQueues[precisionDistance].push({
-                            type: 'update',
-                            location: [i, j, k],
-                            length: precisions[precisionDistance]
-                        });
-                        break;
                     }
-                    precisionDistance++;
+                    toUpdate.push(chunkLocation);
                 }
             }
+            //la précision
+
+
         }
     }
-    */
-    //console.log("My WorkerId is "+ self.id);
-    //console.dir(priorityQueues);
-/*
-    console.log("UPDATE: " + location );
-    console.log("Move: " + move );
-    for(var i=0; i<1; i++){
-        console.log("prio " + i + ": " + priorityQueues[i].length);
-        for(var j=0; j<priorityQueues[i].length; j++){
-            console.log("prio " + i + ": "+priorityQueues[i][j].location[0]+ ", " +priorityQueues[i][j].location[1]+ ", " +priorityQueues[i][j].location[2]);
+    for(var k=0; k<precisions; k++){
+        var currentChunkSize = chunkSize * Math.pow(3, k);
+        var higherChunkSize = chunkSize * Math.pow(3, k+1);
+        /*
+        if(k== precisions-1){
+            higherChunkSize = 0;
         }
-    }
 */
+        priorityQueues.push([]);
+        for(var l=0;l<toUpdate.length;l++){
+                priorityQueues[k].push({
+                        type: 'update',
+                        location: [(toUpdate[l][0]+newChunk[0])*currentChunkSize + planetLocation[0],
+                                    (toUpdate[l][1]+newChunk[1])*currentChunkSize + planetLocation[1],
+                                    (toUpdate[l][2]+newChunk[2])*currentChunkSize + planetLocation[2]],
+                        size: currentChunkSize,
+                        length: chunkLength
+                });
+
+                priorityQueues[k+1].push({
+                        type: 'update',
+                        location: [(newChunk[0]-toUpdate[l][0])*higherChunkSize + planetLocation[0],
+                                    (newChunk[1]-toUpdate[l][1])*higherChunkSize + planetLocation[1],
+                                    (newChunk[2]-toUpdate[l][2])*higherChunkSize + planetLocation[2]],
+                        size: higherChunkSize,
+                        length: chunkLength
+                });
+
+
+        }
+
+    }
+    console.dir(toUpdate);
+
+
     self.postMessage({
         type: 'result',
         id: self.id,
         data: priorityQueues
     });
 
+
 }
 
-self.generateGeometry = function(grid, totalSize, blockSize, chunkStart, chunkLocation, index, compressedData, isMain){
+self.generateGeometry = function(grid, length, size, chunkCenter, index, compressedData, isMain){
 
     //var geo = new THREE.Geometry();
     var vertices = [];
     var faces = [];
+    var blockSize = size / length;
     var unit = blockSize;
     var hUnit = unit /2.0;
 
-    for(var x=0; x<grid[0].length-1;x++){
-        for(var y=0; y<grid[1].length-1;y++){
-            for(var z=0; z<grid[2].length-1;z++){
+    for(var x=0; x<length;x++){
+        for(var y=0; y<length;y++){
+            for(var z=0; z<length;z++){
                 var cubeindex = 0;
 
                 var cubeEdges = [];
@@ -508,27 +394,26 @@ self.generateGeometry = function(grid, totalSize, blockSize, chunkStart, chunkLo
                     color: color
             },
             typeIndex: index,
-            chunkLocation: chunkStart,
-            absoluteLocation: chunkLocation,
+            chunkLocation: chunkCenter,
             compressedChunk: compressedData,
+            size: size,
+            length: length,
             isMain:isMain
         }
 }
 
 self.generateChunk = function(taskData){
 
-        var size = taskData.chunksSize;
+        var size = taskData.size;
         var length = taskData.length;
-        var chunkStart = taskData.location
+        var chunkCenter = taskData.location
         var planetLocation = taskData.planetLocation;
         var Modifications = taskData.modifications;
-        var maxRes = taskData.maxResolution;
+        var isMain = taskData.isMain;
         var compressedData = taskData.compressedData;
         var features = taskData.features;
         var elementRepresentations = [];
 
-        //var length = maxRes;
-        var chunkLocation = [planetLocation[0]+chunkStart[0]*size+size/2, planetLocation[1]+chunkStart[1]*size+size/2, planetLocation[2]+chunkStart[2]*size+size/2];
 
         var blockSize = size / length;
 
@@ -536,30 +421,30 @@ self.generateChunk = function(taskData){
         return;*/
         var data;
         var newData;
-        if(length == maxRes){
+        if(isMain){
             //si on est à la plus haute resolution
             if(compressedData != null){
                 data = self.uncompressData(compressedData, maxRes);
-                newData = self.simpleResolutionForData(data, maxRes, length);
+                newData = self.simpleResolutionForData(data, length);
             }else{
-                data = self.generateData(size, maxRes, chunkStart, planetLocation, features, true);
-                newData = self.simpleResolutionForData(data, maxRes, length);
+                data = self.generateData(size, length, chunkCenter, isMain, features);
+                newData = self.simpleResolutionForData(data, length);
                 var compressedData = self.compressData(data);
             }
             for(var i=1; i<5; i++){
                 if(newData != null){
-                    elementRepresentations.push(self.generateGeometry(newData, size, blockSize, chunkStart, chunkLocation, i, compressedData, (maxRes == length)));
+                    elementRepresentations.push(self.generateGeometry(newData, length, size, chunkCenter, i, compressedData, isMain));
                 }else{
-                    elementRepresentations.push(self.generateGeometry([[[]]], size, blockSize, chunkStart, chunkLocation, i,  compressedData, (maxRes == length)));
+                    elementRepresentations.push(self.generateGeometry([[[]]], length, size, chunkCenter, i,  compressedData, isMain));
                 }
             }
         }else{
-                data = self.generateData(size, length, chunkStart, planetLocation, features, false);
+                data = self.generateData(size, length, chunkCenter, isMain, features);
                 for(var i=1; i<5; i++){
                     if(data != null){
-                        elementRepresentations.push(self.generateGeometry(data, size, blockSize, chunkStart, chunkLocation, i, null, false));
+                        elementRepresentations.push(self.generateGeometry(data, length, size, chunkCenter, i, null, false));
                     }else{
-                        elementRepresentations.push(self.generateGeometry([[[]]], size, blockSize, chunkStart, chunkLocation, i,  null, false));
+                        elementRepresentations.push(self.generateGeometry([[[]]], length, size, chunkCenter, i,  null, false));
                     }
                 }
         }
@@ -572,80 +457,14 @@ self.generateChunk = function(taskData){
         //self.generateGeometry(newData, size, blockSize, chunkStart, chunkLocation, 2, null);
         return;
 
-        //Finalement, on n'utilise pas la bd ici parce que c'est trop lent, on va plutot la loadé au debut...
-        /*
-        //on va commencer par aller voir dans la db si on a déjà une definition pour cet objet;
-        var openRequest = indexedDB.open("EnterSpace_v1",1);
-        openRequest.onupgradeneeded = function(e) {
-            var thisDB = e.target.result;
-            console.log("upgradeneeded");
-            if(!thisDB.objectStoreNames.contains("Chunks")) {
-                var objectStore = thisDB.createObjectStore("Chunks", { keyPath: "Index" });
-                objectStore.createIndex("Index","Index", {unique:true});
-            }
-        }
-
-        openRequest.onsuccess = function(e) {
-            db = e.target.result;
-            //on va commencer par aller voir si il y a deja quelque chose
-            var transaction = db.transaction(["Chunks"],"readonly");
-            var store = transaction.objectStore("Chunks");
-            var ob = store.get(chunkStart);
-
-            ob.onsuccess = function(e) {
-                var result = e.target.result;
-                var data;
-                if(!result){
-                    //on doit enregistré nos données
-                    //console.log("Success!");
-                    var newTransaction = db.transaction(["Chunks"],"readwrite");
-                    var newStore = newTransaction.objectStore("Chunks");
-                    var chunkToAdd = {
-                        Index:chunkStart,
-                        length: maxRes,
-                        data:self.compressData(data),
-                    }
-                    var request = newStore.add(chunkToAdd);
-                    request.onerror = function(e) {
-                        console.log("Error "+ chunkStart);
-                        console.dir(e.target.error);
-                        //some type of error handler
-                    }
-                }else{
-                    data = self.uncompressData(result.data, result.length);
-                }
-                //on a obtenu nos données!
-                var newData = self.simpleResolutionForData(data, maxRes, length);
-                self.generateGeometry(newData, size, blockSize, chunkStart, chunkLocation, 1);
-                self.generateGeometry(newData, size, blockSize, chunkStart, chunkLocation, 2);
-            }
-
-
-
-
-        }
-
-        openRequest.onerror = function(e) {
-            console.log("Error");
-            console.dir(e);
-        }
-        */
 }
 
-self.generateData = function(size, maxRes, chunkStart, planetLocation, features, isMax){
+self.generateData = function(size, length, chunkCenter, isMax, features){
 
-    var length = maxRes;
-    var chunkLocation = [planetLocation[0]+chunkStart[0]*size+size/2, planetLocation[1]+chunkStart[1]*size+size/2, planetLocation[2]+chunkStart[2]*size+size/2];
+    //var chunkLocation = [planetLocation[0]+chunkStart[0]*size+size/2, planetLocation[1]+chunkStart[1]*size+size/2, planetLocation[2]+chunkStart[2]*size+size/2];
 
     var blockSize = size / length;
     var halfBlock = (blockSize/2);
-    //console.log(self.chunkLocation);
-    //console.log(chunkStartInY);
-    //console.log(chunkEndInY);
-
-
-
-
 
     var suppSize = 1;
 
@@ -654,22 +473,20 @@ self.generateData = function(size, maxRes, chunkStart, planetLocation, features,
     for(var x=0; x<length+suppSize; x++){
         heightMap.push([]);
         for(var z=0; z<length+suppSize; z++){
-            heightMap[x].push(GetHeight(chunkStart[0]*size+blockSize*x+halfBlock+planetLocation[0], chunkStart[2]*size+blockSize*z+halfBlock+planetLocation[2]));
+            heightMap[x].push(GetHeight(chunkCenter[0]+blockSize*(x-(length/2)), chunkCenter[2]+blockSize*(z-(length/2))));
         }
     }
-    //console.dir(heightMap);
+    //console.log(heightMap);
     var map = [];
     //console.dir(heightMap);
     var chunkTower=[];
     for(var i = 0; i<length+suppSize; i++){
-        var xLoc = chunkStart[0]*size+blockSize*i+planetLocation[0];
         map.push([]);
         for(var j = 0; j<length+suppSize; j++){
-            var yLoc = chunkStart[1]*size+blockSize*j+planetLocation[1];
+            var yLoc = chunkCenter[1]+blockSize*(j-(length/2));
             map[i].push([]);
             for(var k = 0; k<length+suppSize; k++){
-                var zLoc = chunkStart[2]*size+blockSize*k+planetLocation[2];
-                //console.log(heightMap[i][k] + " - " + (chunkStart[1]+blockSize*j))
+                //console.log(heightMap[i][k] + " - " )
 
                 if(heightMap[i][k]> yLoc){
                     map[i][j].push(1);
@@ -685,7 +502,7 @@ self.generateData = function(size, maxRes, chunkStart, planetLocation, features,
     for(var i=0; i<features.length; i++){
         if(features[i].maxOnly == false || isMax){
             var functionString = features[i].type + "_GenerateFeatures";
-            map = self[functionString](features[i], chunkStart, length, size, map);
+            map = self[functionString](features[i], chunkCenter, length, size, map);
         }
     }
 
@@ -745,7 +562,9 @@ self.changeResolutionForData = function(rawData, oldRes, newRes){
     //TOIMPLEMENT
 }
 
-self.simpleResolutionForData = function(rawData, oldRes, newRes){
+self.simpleResolutionForData = function(rawData, newRes){
+    return rawData;
+    //TODO: à ARRANGER
     if(oldRes == newRes){
         return rawData;
     }

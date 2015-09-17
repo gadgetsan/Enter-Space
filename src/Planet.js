@@ -11,17 +11,17 @@ var Planet = function(size, position){
 
     this.building = [];
 
-    this.Chunks = new Chunks(size, position, [new Caves(0.25, 5.0, 5.0),
+    this.Chunks = new Chunks(size, position, [/*new Caves(0.25, 5.0, 5.0),
                                                 new Ores(1.0, 4, 0.2),
-                                                new Ores(1.1, 5, 0.1),
-                                                new Ice(100),
-                                                new Water(-60)]);
+                                                new Ores(1.1, 5, 0.1),*/
+                                                new Ice(375),
+                                                new Water(175)]);
 
     this.currentHighLightLocation = new THREE.Vector3( 0, 0, 0 );
 
     this.highlightClosest = function(cameraPosition, lookAtVector){
         //console.log(cameraPosition);
-        var blockSize = self.ChunkSize/self.Chunks.GetMaxRes();
+        //var blockSize = self.ChunkSize/self.Chunks.GetMaxRes();
         var location = new THREE.Vector3(0,0,0);
         location.copy(lookAtVector);
         //location.multiplyScalar(blockSize*2);
@@ -108,71 +108,20 @@ var Planet = function(size, position){
         cameraPosition.sub(this.Position);
         //console.log(cameraPosition);
         var halfChunk = this.ChunkSize;
-        var xIndex = Math.floor(cameraPosition.x / this.ChunkSize);
-        var zIndex = Math.floor(cameraPosition.z / this.ChunkSize);
-        var yIndex = Math.floor(cameraPosition.y / this.ChunkSize);
+        var xIndex = Math.round(cameraPosition.x / this.ChunkSize);
+        var zIndex = Math.round(cameraPosition.z / this.ChunkSize);
+        var yIndex = Math.round(cameraPosition.y / this.ChunkSize);
         if((this.oldxindex != xIndex || this.oldyindex != yIndex || this.oldzindex != zIndex)){
             //console.log("new: " + xIndex + ", " + yIndex + ", " + zIndex);
             self.Chunks.UpdateLocation([xIndex, yIndex, zIndex], [-this.oldxindex + xIndex, -this.oldyindex + yIndex, -this.oldzindex + zIndex]);
-            /*
-            //le but ultime c'est d'avoir une grille de 9 chunks autour du joueur qui sont à une plus haute résolution
-            //ce serais même bien d'avoir ce nombre configurable
-            //console.log("old: " + this.oldxindex + ", " + this.oldyindex + ", " + this.oldzindex);
-            console.log("new: " + xIndex + ", " + yIndex + ", " + zIndex);
-            var highResRay = 1;
-            //on regarde dans quel direction on a bougé
-            if(this.oldxindex != xIndex){
-                var newDir = xIndex+(highResRay*(xIndex-this.oldxindex));
-                var oldDir = this.oldxindex-(highResRay*(xIndex-this.oldxindex));
-                for(var i= yIndex-highResRay; i<=yIndex+highResRay;i++){
-                    for(var j=zIndex-highResRay; j<= zIndex+highResRay; j++ ){
-                        //console.log("Augmenting Resolution to: " + newDir + ", " + i + ", " + j);
-                        //console.log((xIndex-this.oldxindex));
-                        //console.log("reducing Resolution to: " + oldDir + ", " + i + ", " + j);
-                        //this.ChunkGen.UpdateChunk([oldDir, i, j], this.ChunkSize, this.lowResolutionBlockSize);
-                        //this.ChunkGen.UpdateChunk([newDir, i, j], this.ChunkSize, this.highResolutionBlockSize);
-                    }
-                }
-            }
-            if(this.oldyindex != yIndex){
-                var newDir = yIndex+(highResRay*(yIndex-this.oldyindex));
-                var oldDir = this.oldyindex-(highResRay*(yIndex-this.oldyindex));
-                for(var i= zIndex-highResRay; i<=zIndex+highResRay;i++){
-                    for(var j=xIndex-highResRay; j<= xIndex+highResRay; j++ ){
-                        //console.log("Augmenting Resolution to: " + j + ", " + newDir + ", " + i);
-                        //console.log("reducing Resolution to: " + j + ", " + oldDir + ", " + i);
-                        //this.ChunkGen.UpdateChunk([j, oldDir, j], this.ChunkSize, this.lowResolutionBlockSize);
-                        //this.ChunkGen.UpdateChunk([j, newDir, j], this.ChunkSize, this.highResolutionBlockSize);
-                    }
-                }
-
-            }
-            if(this.oldzindex != zIndex){
-                var newDir = zIndex+(highResRay*(zIndex-this.oldzindex));
-                var oldDir = this.oldzindex-(highResRay*(zIndex-this.oldzindex));
-                for(var i= yIndex-highResRay; i<=yIndex+highResRay;i++){
-                    for(var j=xIndex-highResRay; j<= xIndex+highResRay; j++ ){
-                        //console.log("Augmenting Resolution to: " + j + ", " + i + ", " + newDir);
-                        //console.log("reducing Resolution to: " + j + ", " + i + ", " + oldDir);
-                        //this.ChunkGen.UpdateChunk([j, i, oldDir], this.ChunkSize, this.lowResolutionBlockSize);
-                        //this.ChunkGen.UpdateChunk([j, i, newDir], this.ChunkSize, this.highResolutionBlockSize);
-                    }
-                }
-            }
-
-            //this.changeResolution(this.oldxindex, this.oldyindex, this.oldzindex, 10);
-
-
-            //on va changer la resolution de la nouvelle chunk
-            //this.changeResolution(xIndex, yIndex, zIndex, 1);
-            */
         }
         this.oldxindex = xIndex;
         this.oldzindex = zIndex;
         this.oldyindex = yIndex;
     }
 
-    this.collectClosestOfType(type, maxDistance){
+    this.collectClosestOfType = function(type, maxDistance){
+        //TODO: Implement
         //on va aller chercher le plus près d'un certain type et l'enlever
     }
 
@@ -190,7 +139,7 @@ var Planet = function(size, position){
 
         this.building.push({
             mesh: cube,
-            building = new FACTORY.Retriever(cube.position);
+            building: new FACTORY.Retriever(cube.position)
         })
         return true;
     }

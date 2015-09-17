@@ -269,7 +269,7 @@
 			renderer.shadowMapSoft = true;
 
 			renderer.shadowCameraNear = 1;
-			renderer.shadowCameraFar = 5000;
+			renderer.shadowCameraFar = 10000;
 			renderer.shadowCameraFov = 0;
 
 			renderer.shadowMapBias = 0.0039;
@@ -285,7 +285,7 @@
 			var material = new THREE.MeshLambertMaterial({ color: randomColor() });
 
 			var perlinScaling = 10;
-			var startingLocation = [1000, 250, 1025];
+			var startingLocation = [1000, 350, 1025];
 			var chunkSize = 50;
 		  var planet = new Planet(chunkSize, startingLocation);
 		  //planet.AddToScene(scene);
@@ -312,7 +312,7 @@
             dirLight.shadowCameraVisible = true;
 
     		dirLight.shadowCameraNear = 1;
-    		dirLight.shadowCameraFar = 5000;
+    		dirLight.shadowCameraFar = 10000;
 			dirLight.shadowDarkness = 0.9;
     		dirLight.shadowMapWidth = dirLight.shadowMapHeight = 512;
 
@@ -327,7 +327,7 @@
 	var radius = blockSize; // m
 	var sphereBody = new CANNON.Body({
 	   mass: 50, // kg
-	   position: new CANNON.Vec3(startingLocation[0]+(chunkSize/2), startingLocation[1]+(chunkSize/2), startingLocation[2]+(chunkSize/2)), // m
+	   position: new CANNON.Vec3(startingLocation[0], startingLocation[1], startingLocation[2]), // m
 	   shape: new CANNON.Sphere(radius),
 	   material: ground_ground_cm
 	});
@@ -342,7 +342,7 @@ var maxSubSteps = 5;
 	block.position.x = startingLocation[0] +(chunkSize/2);
 	block.position.y = startingLocation[1]+(chunkSize/2);
 	block.position.z = startingLocation[2]+(chunkSize/2);
-	//scene.add(block);
+	scene.add(block);
 
 
 	var spotlight = new THREE.SpotLight(0xffffff);
@@ -427,7 +427,7 @@ dirLight.target = block;
 				Frontdirection.y = 0;
 
 				Leftdirection.crossVectors(Frontdirection, new THREE.Vector3(0,1,0));
-				var force = 10;
+				var force = 50;//10;
 				if ( moveForward ) sphereBody.velocity.set(Frontdirection.x*force,sphereBody.velocity.y,Frontdirection.z*force);
 				if ( moveBackward ) sphereBody.velocity.set(Frontdirection.x*-force,sphereBody.velocity.y,Frontdirection.z*-force);
 				if ( moveLeft ) sphereBody.velocity.set(Leftdirection.x*-force,sphereBody.velocity.y,Leftdirection.z*-force);
