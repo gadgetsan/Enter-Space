@@ -3,53 +3,45 @@ var Chunks = function(chunkSize, startingLocation, features){
     this.List = [];
 
     this.Meshes = [];
-    this.Bodies = [];
+    this.currentBody = null;
     this.debugMeshes = [];
 
     //this.resolutions = [15/*, 10, 2*/];//[30, 10, 2];
     //this.distances = [2/*, 5, 20*/];//[2, 5, 20];
 
-    this.ChunkLength = 30;
+    this.ChunkLength = 35;
     this.ChunkSize = chunkSize;
-    this.Precisions = 2;
+    this.Precisions = 4;//4;
 
     this.planetLocation = startingLocation;//[100, 100, 100];
     //console.log(startingLocation);
 
-    this.debug = false;
-
     this.features = features;
 
     this.elementMaterials = [];
-    if(self.debug){
-        this.elementMaterials.push(new THREE.MeshBasicMaterial({color: 0x00DD00, opacity: 1.0, transparent: false, wireframe: true }));
-        this.elementMaterials.push(new THREE.MeshBasicMaterial({color: 0x33DDFF, opacity: 1.0, transparent: false, wireframe: true  }));
-        this.elementMaterials.push(new THREE.MeshBasicMaterial({color: 0xFFFFFF, opacity: 1.0, transparent: false, wireframe: true  }));
-        this.elementMaterials.push(new THREE.MeshBasicMaterial({color: 0xFF0000, opacity: 1.0, transparent: false, wireframe: true  }));
-        this.elementMaterials.push(new THREE.MeshBasicMaterial({color: 0x00FFFF, opacity: 1.0, transparent: false, wireframe: true  }));
-    }else{
-        this.elementMaterials.push(new THREE.MeshLambertMaterial({color: 0x00DD00, opacity: 1.0, transparent: false }));
-        this.elementMaterials.push(new THREE.MeshLambertMaterial({color: 0x88DDFF, opacity: 1.0, transparent: false }));
-        this.elementMaterials.push(new THREE.MeshLambertMaterial({color: 0xFFFFFF, opacity: 1.0, transparent: false }));
-        this.elementMaterials.push(new THREE.MeshLambertMaterial({color: 0xFF0000, opacity: 1.0, transparent: false }));
-        this.elementMaterials.push(new THREE.MeshLambertMaterial({color: 0x00FFFF, opacity: 1.0, transparent: false }));
-    }
+    this.elementMaterials.push(new THREE.MeshLambertMaterial({color: 0x00DD00, opacity: 1.0, transparent: false }));
+    this.elementMaterials.push(new THREE.MeshLambertMaterial({color: 0x88DDFF, opacity: 1.0, transparent: false }));
+    this.elementMaterials.push(new THREE.MeshLambertMaterial({color: 0xFFFFFF, opacity: 1.0, transparent: false }));
+    this.elementMaterials.push(new THREE.MeshLambertMaterial({color: 0xFF0000, opacity: 1.0, transparent: false }));
+    this.elementMaterials.push(new THREE.MeshLambertMaterial({color: 0x00FFFF, opacity: 1.0, transparent: false }));
 
-    Workers.addTask('GenerateInitialChunkList', [self.planetLocation, self.ChunkSize, self.ChunkLength, self.Precisions], 0, function(result){
+    Workers.addTask('GenerateInitialChunkList', [self.planetLocation, self.ChunkSize, self.ChunkLength, self.Precisions, {startTime: new Date().getTime(), type: "start"}], 0, function(result){
         var tasksCount = 0;
-        //console.dir(result);
-        for(var i=0; i<result.length;i++){
-            for(var j=0; j<result[i].length;j++){
+        //console.dir(queue);
+        var queue = result.list;
+        for(var i=0; i<queue.length;i++){
+            for(var j=0; j<queue[i].length;j++){
                 params = {
-                    size: result[i][j].size,
-                    length: result[i][j].length,
-                    location: result[i][j].location,
+                    size: queue[i][j].size,
+                    length: queue[i][j].length,
+                    location: queue[i][j].location,
                     planetLocation: self.planetLocation,
                     isMain: i==0,
                     features: self.features,
-                    compressedData: null
+                    compressedData: self.Get(queue[i][j].location),
+                    debug: result.debug
                 }
-                //console.log("Asking to Generate Chunk "+ result[i][j].location + " with priority " + i + " and size: " + result[i][j].size);
+                //console.log("Asking to Generate Chunk "+ queue[i][j].location + " with priority " + i + " and size: " + queue[i][j].size);
                 tasksCount++;
                 Workers.addTask('generateChunk', params, i, self.UpdateChunk);
             }
@@ -58,7 +50,21 @@ var Chunks = function(chunkSize, startingLocation, features){
     })
 
 
+    self.updateDebugMeshes = function(delta){
+        if(!DEBUG){return;}
+        for(var i=0; i<self.debugMeshes.length; i++){
+            self.debugMeshes[i].ttl -= delta;
+            self.debugMeshes[i].material.opacity /= 1.1;
+            //console.log(self.debugMeshes[i].ttl);
+            if(self.debugMeshes[i].ttl < 0){
+                scene.remove(self.debugMeshes[i]);
 
+                self.debugMeshes.splice(i, 1);
+                i--;
+
+            }
+        }
+    }
 
     self.Get = function(index){
         //une simple methode permettant d'obtenir une version compressée des données
@@ -173,32 +179,41 @@ var Chunks = function(chunkSize, startingLocation, features){
         //type d'elements
         var location;
         var isMain;
-        for(var i=0; i<result.length; i++){
-            self.UpdateMesh(result[i]);
+        var queue = result.list;
+        for(var i=0; i<queue.length; i++){
+            queue[i].debug = result.debug;
+            self.UpdateMesh(queue[i]);
         }
 
-/*
-        for(var i=0; i<result.length; i++){
+        if(DEBUG){
 
-            var BOX;
-            var opacity = 0.025;
-            if(result[i].isMain){
-                BOX = new THREE.Mesh( new THREE.BoxGeometry(result[i].size, result[i].size, result[i].size ), new THREE.MeshLambertMaterial({color: 0x0000FF, opacity: opacity, transparent: true }));
-            }else{
-                BOX = new THREE.Mesh( new THREE.BoxGeometry(result[i].size, result[i].size, result[i].size ), new THREE.MeshLambertMaterial({color: 0xFF0000, opacity: opacity, transparent: true }));
+            for(var i=0; i<queue.length; i++){
+
+                var opacity = 1.0;
+                var material;
+                if(queue[i].isMain){
+                    material = new THREE.MeshBasicMaterial({color: 0x0000FF, opacity: opacity, transparent: true });
+                }else{
+                    material = new THREE.MeshBasicMaterial({color: 0xFF0000, opacity: opacity, transparent: true });
+                }
+                var debugBox = new THREE.Mesh( new THREE.BoxGeometry(queue[i].size, queue[i].size, queue[i].size ), material);
+
+                debugBox.material.side = THREE.DoubleSide;
+                debugBox.position.set(queue[i].chunkLocation[0], queue[i].chunkLocation[1], queue[i].chunkLocation[2]);
+                //console.log(BOX.position);
+                debugBox.ttl = 5;
+                scene.add(debugBox);
+                self.debugMeshes.push(debugBox);
             }
-
-            BOX.material.side = THREE.DoubleSide;
-            BOX.position.set(result[i].chunkLocation[0], result[i].chunkLocation[1], result[i].chunkLocation[2]);
-            //console.log(BOX.position);
-            scene.add(BOX);
         }
-*/
+
 
 
     }
 
     self.UpdateMesh = function(result){
+        var profiler = new Profiler();
+        var startTime = new Date().getTime();
         //console.dir(result)
         var rawGeometry = result.geo;
         //le centre de la chunk
@@ -207,6 +222,10 @@ var Chunks = function(chunkSize, startingLocation, features){
         var size = result.size;
         var length = result.length;
         var isMain = result.isMain;
+        var compressedData = result.compressedChunk;
+        if(compressedData != null){
+            self.Set(location, compressedData);
+        }
 
         var actualLocation = [];
         actualLocation[0] = location[0] - (size/2);
@@ -216,19 +235,20 @@ var Chunks = function(chunkSize, startingLocation, features){
         //on va commencer par aller voir si cette chunk va cacher une autre chunk
 
                 for(var i=0; i<self.Meshes.length; i++){
-                    var mp = self.Meshes[i].position;
+                    var mp = [self.Meshes[i].position.x+self.Meshes[i].size/2, self.Meshes[i].position.y+self.Meshes[i].size/2, self.Meshes[i].position.z+self.Meshes[i].size/2];
                     //console.log(location + " size: "+size+ "self.Meshes.");
-                    if(self.Meshes[i].typeIndex == typeIndex && mp.x > actualLocation[0]-(size/2) && mp.x < actualLocation[0]+(size/2) && mp.y > actualLocation[1]-(size/2) && mp.y < actualLocation[1]+(size/2) && mp.z > actualLocation[2]-(size/2) && mp.z < actualLocation[2]+(size/2)){
-                        //if((mp.x - actualLocation[0] > 0.001) && (mp.y - actualLocation[1] > 0.001) && (mp.z - actualLocation[2] > 0.001)){
+                    if(self.Meshes[i].typeIndex == typeIndex &&
+                            mp[0] > location[0]-(size/2) && mp[0] < location[0]+(size/2) &&
+                            mp[1] > location[1]-(size/2) && mp[1]< location[1]+(size/2) &&
+                            mp[2] > location[2]-(size/2) && mp[2]< location[2]+(size/2)){
                             scene.remove(self.Meshes[i]);
-                            console.log("removing mesh " + i + " because "+ mp.x + ", " +mp.y + ", " + mp.z+ " is within "+ actualLocation + " at size " + size);
-                            //world.remove(self.Bodies[i]);
                             self.Meshes.splice(i, 1);
                             i--;
                         //}
                     }
                 }
 
+        profiler.display("Deleting Older Meshes");
         if(rawGeometry.faces.length > 1 ){
 /*
             console.log(location);
@@ -243,73 +263,110 @@ var Chunks = function(chunkSize, startingLocation, features){
             for (var i = 0; i < rawGeometry.faces.length; i++) {
                 newGeometry.faces.push(new THREE.Face3(rawGeometry.faces[i][0], rawGeometry.faces[i][1], rawGeometry.faces[i][2]))
             }
+
+            profiler.display("Recreating Geometries");
             newGeometry.computeFaceNormals();
             //newGeometry.computeVertexNormals();
 
-            var newMesh = new THREE.Mesh(newGeometry, self.elementMaterials[typeIndex-1] );
+            var material = self.elementMaterials[typeIndex-1];
+            var newMesh = new THREE.Mesh(newGeometry, material );
             //var newMesh = new THREE.Mesh( new THREE.BoxGeometry(size, size, size ), new THREE.MeshLambertMaterial({color: 0x0000FF, opacity: 0.2, transparent: true }));
             //newMesh.material.side = THREE.DoubleSide;
             newMesh.position.x = actualLocation[0];
             newMesh.position.y = actualLocation[1];
             newMesh.position.z = actualLocation[2];
             newMesh.typeIndex = typeIndex;
+            newMesh.size = size
             newMesh.castShadow = true;
             newMesh.receiveShadow = true;
+            profiler.display("Recreating Meshes");
 
-            var indices = [];
-            for(var i=0; i<rawGeometry.faces.length;i++ ){
-                indices.push(rawGeometry.faces[i][0]);
-                indices.push(rawGeometry.faces[i][1]);
-                indices.push(rawGeometry.faces[i][2]);
-            }
-            var vertices = [];
-            for(var i=0; i<rawGeometry.vertices.length;i++){
-                vertices.push(rawGeometry.vertices[i][0]);
-                vertices.push(rawGeometry.vertices[i][1]);
-                vertices.push(rawGeometry.vertices[i][2]);
-            }
-            var newBody = null;
-			if(isMain){
+
+            self.Meshes.push(newMesh);
+            //console.log("adding chunk at " + location + " of size "+ size + " isMain? "+ isMain);
+            scene.add(newMesh);
+
+            profiler.display("Adding Meshes");
+        }
+        var endTime = new Date().getTime();
+
+
+    }
+
+    self.UpdatePhysics = function(newChunkLocation){
+        //on va transformer la position reçu en position ultime
+        var chunkAbsLocation = [self.planetLocation[0] + (self.ChunkSize * newChunkLocation[0] - self.ChunkSize/2),
+                                        self.planetLocation[1] + (self.ChunkSize * newChunkLocation[1]) - self.ChunkSize/2,
+                                        self.planetLocation[2] + (self.ChunkSize * newChunkLocation[2]) - self.ChunkSize/2]
+
+        for(var i=0; i<self.Meshes.length; i++){
+            var mp = [self.Meshes[i].position.x, self.Meshes[i].position.y, self.Meshes[i].position.z];
+            //console.log(location + " size: "+size+ "self.Meshes.");
+            if(self.Meshes[i].size == self.ChunkSize && mp[0] == chunkAbsLocation[0] && mp[1] == chunkAbsLocation[1] && mp[2] == chunkAbsLocation[2]){
+
+                var meshGeometry = self.Meshes[i].geometry;
+                var meshIndex = self.Meshes[i].typeIndex;
+
+                var indices = [];
+                for(var j=0; j<meshGeometry.faces.length;j++ ){
+                    indices.push(meshGeometry.faces[j].a);
+                    indices.push(meshGeometry.faces[j].b);
+                    indices.push(meshGeometry.faces[j].c);
+                }
+                var vertices = [];
+                for(var j=0; j<meshGeometry.vertices.length;j++){
+                    vertices.push(meshGeometry.vertices[j].x);
+                    vertices.push(meshGeometry.vertices[j].y);
+                    vertices.push(meshGeometry.vertices[j].z);
+                }
 
                 var newShape = new CANNON.Trimesh(vertices, indices);
                 //newShape.computeNormal();
 
-				newBody = new CANNON.Body({
+
+				var newBody = new CANNON.Body({
 				   mass: 0, // kg
-				   position: new CANNON.Vec3(newMesh.position.x, newMesh.position.y, newMesh.position.z), // m
+				   position: new CANNON.Vec3(chunkAbsLocation[0], chunkAbsLocation[1], chunkAbsLocation[2]), // m
 				   shape: newShape,
                    material: ground_ground_cm
 				});
+
+                if(DEBUG)console.log("----------------------Adding Physics for " + chunkAbsLocation + " faces: " + indices.length + " at " + newBody.position + " for type " + meshIndex);
 				world.addBody(newBody);
-			}
 
-
-            self.Bodies.push(newBody);
-            self.Meshes.push(newMesh);
-            //console.log("adding chunk at " + location + " of size "+ size + " isMain? "+ isMain);
-            scene.add(newMesh);
+                if(self.currentBody != null){
+                    world.remove(self.currentBody);
+                    delete self.currentBody;
+                }
+                self.currentBody = newBody;
+            }
         }
-
     }
 
     self.UpdateLocation = function(chunkLocation, movement){
+        /*
         console.log(movement);
         console.log(chunkLocation);
-        Workers.addTask('GenerateUpdateChunkList', [self.planetLocation, self.ChunkSize, self.ChunkLength, self.Precisions, movement, chunkLocation], 0, function(result){
+        */
+        var centerChunkLocation = [chunkLocation[0] * self.ChunkSize+ self.planetLocation[0], chunkLocation[1] * self.ChunkSize + self.planetLocation[1], chunkLocation[2] * self.ChunkSize+ self.planetLocation[2]]
+        Workers.addTask('GenerateUpdateChunkList', [self.planetLocation, self.ChunkSize, self.ChunkLength, self.Precisions, movement, chunkLocation, {startTime: new Date().getTime(), type: "update"}], 0, function(result){
             var tasksCount = 0;
-            console.dir(result);
-            for(var i=0; i<result.length;i++){
-                for(var j=0; j<result[i].length;j++){
+            //console.dir(result);
+            var queue = result.list;
+            for(var i=0; i<queue.length;i++){
+                for(var j=0; j<queue[i].length;j++){
                     params = {
-                        size: result[i][j].size,
-                        length: result[i][j].length,
-                        location: result[i][j].location,
+                        size: queue[i][j].size,
+                        length: queue[i][j].length,
+                        location: queue[i][j].location,
                         planetLocation: self.planetLocation,
                         isMain: i==0,
                         features: self.features,
-                        compressedData: null
+                        compressedData: self.Get(queue[i][j].location),
+                        debugData : result.debug
                     }
-                    //console.log("Asking to Generate Chunk "+ result[i][j].location + " with priority " + i);
+
+                    if(DEBUG)console.log("for location "+ centerChunkLocation + " Asking to Generate Chunk "+ queue[i][j].location + " with priority " + i + " and size " + queue[i][j].size);
                     tasksCount++;
                     //on doit enlever les tâches qui ont deja affaire à modifier cette chunk
                     /*
@@ -402,5 +459,5 @@ var Chunks = function(chunkSize, startingLocation, features){
     }
 
 
-    //self.Load();
+    self.Load();
 }

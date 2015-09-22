@@ -150,6 +150,7 @@ self.GenerateInitialChunkList = function(data){
 
     //la taille (en unité) ou la précision de la chunk
     precisions= data[3];
+    var debug = data[4];
 
     priorityQueues = [[]];
 
@@ -190,7 +191,10 @@ self.GenerateInitialChunkList = function(data){
     self.postMessage({
         type: 'result',
         id: self.id,
-        data: priorityQueues
+        data: {
+            list: priorityQueues,
+            debug: debug
+        }
     });
 
 }
@@ -209,87 +213,183 @@ self.GenerateUpdateChunkList = function(data){
     //la taille (en unité) ou la précision de la chunk
     precisions= data[3];
 
-    priorityQueues = [[]];
+    var priorityQueues = [[]];
+    for(var i=0; i<precisions; i++){
+        priorityQueues.push([]);
+    }
 
     //le nouvel emplacement ainsi que le mouvement
     var movement = data[4];
     var newChunk = data[5];
-    var toUpdate = [];
+    var debug = data[6];
 
-    //la direction
-    for(var i=1; i<3;i++){
-        //la taille du mouvement
-        for(var j=1; j<=Math.abs(movement[i]);j++){
+    //donc ici 2 choses peuvent se produire, soit qu'on 'collapse' des chunks
+    //ou soit qu'on les 'rebuild'. On collapse dans une direction spécifique
+    //(ou vers un coin) quand on s'éloigne du centre. Et on rebuild une direction
+    //spécifique quand on reviens dans un centre
 
-            for(var l=-1; l<=1;l++){
-                for(var m=-1; m<=1;m++){
-                    var chunkLocation = [];
-                    var first = true;
-                    for(var n=0; n<3;n++){
-                        if(movement[n] != 0){
-                            var direction = movement[n]<0? -1: 1;
-                            chunkLocation[n] = direction*j;
-                        }else if(first){
-                            chunkLocation[n] = l;
-                            first = false;
-                        }else{
-                            chunkLocation[n] = m;
-                        }
-                    }
-                    toUpdate.push(chunkLocation);
+    //  __ __ __   __ __ __
+    // |__|__|__| |        |
+    // |__|_-->_| |        |   COLLAPSE à DROITE
+    // |__|__|__| |__ __ __|
+    //  __ __ __   __ __ __
+    // |        | |__|__|__|
+    // |        | |_-->_|__|   REBUILD à GAUCHE
+    // |__ __ __| |__|__|__|
+
+    //on commence par regarder dans quelle partie du processus on est (build ou collapse)
+    //dependament de notre distance avec le centre ainsi que notre déplacement
+
+    var closestCenter = [Math.round(newChunk[0]/3)*3, Math.round(newChunk[1]/3)*3, Math.round(newChunk[2]/3)*3];
+
+    var locationToCenter = [newChunk[0]-closestCenter[0], newChunk[1]-closestCenter[1], newChunk[2]-closestCenter[2]];
+    var oldLocationToCenter = [locationToCenter[0]-movement[0], locationToCenter[1]-movement[1], locationToCenter[2]-movement[2]];
+
+    var rebuildVectors = [];
+    var collapseVectors = [];
+
+    for(var i=0; i<3; i++){
+        if(Math.abs(locationToCenter[i]) == 1 && oldLocationToCenter.indexOf(2) == -1 && oldLocationToCenter.indexOf(-2) == -1 ){
+            //on va construire le vecteur
+            var newCollapseVector = [0,0,0];
+            for(var j=0; j<3; j++){
+                if(i==j){
+                    newCollapseVector[i] = locationToCenter[i];
                 }
             }
-            //la précision
 
+            if(newCollapseVector[0] != 0 || newCollapseVector[1]!= 0 || newCollapseVector[2] != 0){
+                collapseVectors.push(newCollapseVector);
+            }
+        }
 
+        if(Math.abs(locationToCenter[i]) == 0 && oldLocationToCenter.indexOf(2) == -1 && oldLocationToCenter.indexOf(-2) == -1 ){
+            var newRebuildVector = [0,0,0];
+            for(var j=0; j<3; j++){
+                if(i==j){
+                    newRebuildVector[i] = oldLocationToCenter[i];
+                }
+            }
+            if(newRebuildVector[0] != 0 || newRebuildVector[1]!= 0 || newRebuildVector[2] != 0){
+                rebuildVectors.push(newRebuildVector);
+            }
         }
     }
-    for(var k=0; k<precisions; k++){
-        var currentChunkSize = chunkSize * Math.pow(3, k);
-        var higherChunkSize = chunkSize * Math.pow(3, k+1);
-        /*
-        if(k== precisions-1){
-            higherChunkSize = 0;
-        }
+
+    //ensuite ce qu'on va faire c'est créer toute les combinaisons possible de vecteurs resultants
+
+    if(collapseVectors.length == 3){
+        collapseVectors.push([collapseVectors[0][0] + collapseVectors[1][0], collapseVectors[0][1] + collapseVectors[1][1], collapseVectors[0][2] + collapseVectors[1][2]])
+        collapseVectors.push([collapseVectors[0][0] + collapseVectors[2][0], collapseVectors[0][1] + collapseVectors[2][1], collapseVectors[0][2] + collapseVectors[2][2]])
+        collapseVectors.push([collapseVectors[2][0] + collapseVectors[1][0], collapseVectors[2][1] + collapseVectors[1][1], collapseVectors[2][2] + collapseVectors[1][2]])
+
+        collapseVectors.push([collapseVectors[0][0] + collapseVectors[1][0] + collapseVectors[2][0], collapseVectors[0][1] + collapseVectors[1][1] + collapseVectors[2][1], collapseVectors[0][2] + collapseVectors[1][2] + collapseVectors[2][2]])
+    }
+    if(rebuildVectors.length == 3){
+        rebuildVectors.push([rebuildVectors[0][0] + rebuildVectors[1][0], rebuildVectors[0][1] + rebuildVectors[1][1], rebuildVectors[0][2] + rebuildVectors[1][2]])
+        rebuildVectors.push([rebuildVectors[0][0] + rebuildVectors[2][0], rebuildVectors[0][1] + rebuildVectors[2][1], rebuildVectors[0][2] + rebuildVectors[2][2]])
+        rebuildVectors.push([rebuildVectors[2][0] + rebuildVectors[1][0], rebuildVectors[2][1] + rebuildVectors[1][1], rebuildVectors[2][2] + rebuildVectors[1][2]])
+
+        rebuildVectors.push([rebuildVectors[0][0] + rebuildVectors[1][0] + rebuildVectors[2][0], rebuildVectors[0][1] + rebuildVectors[1][1] + rebuildVectors[2][1], rebuildVectors[0][2] + rebuildVectors[1][2] + rebuildVectors[2][2]])
+    }
+
+    if(collapseVectors.length == 2){
+        collapseVectors.push([collapseVectors[0][0] + collapseVectors[1][0], collapseVectors[0][1] + collapseVectors[1][1], collapseVectors[0][2] + collapseVectors[1][2]])
+    }
+    if(rebuildVectors.length == 2){
+        rebuildVectors.push([rebuildVectors[0][0] + rebuildVectors[1][0], rebuildVectors[0][1] + rebuildVectors[1][1], rebuildVectors[0][2] + rebuildVectors[1][2]])
+    }
+/*
+    console.log("locationToCenter: " + locationToCenter);
+    console.log("oldLocationToCenter: " + oldLocationToCenter);
+    console.log("collapseVectors: " + collapseVectors);
+    console.log("rebuildVectors: " + rebuildVectors);
 */
-        priorityQueues.push([]);
-        for(var l=0;l<toUpdate.length;l++){
-                priorityQueues[k].push({
-                        type: 'update',
-                        location: [(toUpdate[l][0]+newChunk[0])*currentChunkSize + planetLocation[0],
-                                    (toUpdate[l][1]+newChunk[1])*currentChunkSize + planetLocation[1],
-                                    (toUpdate[l][2]+newChunk[2])*currentChunkSize + planetLocation[2]],
-                        size: currentChunkSize,
-                        length: chunkLength
-                });
+    //ensuite, on va finalement generer la liste des chunks à collapse et à rebuild
+    var centerChunkLocation = [closestCenter[0] * chunkSize, closestCenter[1] * chunkSize, closestCenter[2] * chunkSize];
 
-                priorityQueues[k+1].push({
-                        type: 'update',
-                        location: [(newChunk[0]-toUpdate[l][0])*higherChunkSize + planetLocation[0],
-                                    (newChunk[1]-toUpdate[l][1])*higherChunkSize + planetLocation[1],
-                                    (newChunk[2]-toUpdate[l][2])*higherChunkSize + planetLocation[2]],
-                        size: higherChunkSize,
-                        length: chunkLength
-                });
-
-
+    //pour chaque vecteur
+    for(var i=0; i< collapseVectors.length; i++){
+        //pour chaque precision
+        var highestPrecisionChunkLocation = [centerChunkLocation[0]+collapseVectors[i][0]*3*chunkSize, centerChunkLocation[1]+collapseVectors[i][1]*3*chunkSize, centerChunkLocation[2]+collapseVectors[i][2]*3*chunkSize];
+        self.addPrioritiesToCollapseChunk(highestPrecisionChunkLocation, chunkSize, chunkLength, planetLocation, priorityQueues, 0);
+        for(var j=1; j<precisions; j++){
+            var currentChunkSize = chunkSize * Math.pow(3, j);
+            var currentLocation = [highestPrecisionChunkLocation[0]+currentChunkSize*2*collapseVectors[i][0],
+                        highestPrecisionChunkLocation[1]+currentChunkSize*2*collapseVectors[i][1],
+                        highestPrecisionChunkLocation[2]+currentChunkSize*2*collapseVectors[i][2]]
+            highestPrecisionChunkLocation = [currentLocation[0], currentLocation[1], currentLocation[2]];
+            self.addPrioritiesToCollapseChunk(currentLocation, currentChunkSize, chunkLength, planetLocation, priorityQueues, j);
         }
-
     }
-    console.dir(toUpdate);
+
+    //pour chaque vecteur
+    for(var i=0; i< rebuildVectors.length; i++){
+        //pour chaque precision
+        var highestPrecisionChunkLocation = [centerChunkLocation[0]+rebuildVectors[i][0]*3*chunkSize, centerChunkLocation[1]+rebuildVectors[i][1]*3*chunkSize, centerChunkLocation[2]+rebuildVectors[i][2]*3*chunkSize];
+        self.addPrioritiesToRebuildChunk(highestPrecisionChunkLocation, chunkSize*3, chunkLength, planetLocation, priorityQueues, precisions);
+        for(var j=2; j<=precisions; j++){
+            var currentChunkSize = chunkSize * Math.pow(3, j);
+            var currentLocation = [highestPrecisionChunkLocation[0]+currentChunkSize*(2/3)*rebuildVectors[i][0],
+                        highestPrecisionChunkLocation[1]+currentChunkSize*(2/3)*rebuildVectors[i][1],
+                        highestPrecisionChunkLocation[2]+currentChunkSize*(2/3)*rebuildVectors[i][2]]
+            highestPrecisionChunkLocation = [currentLocation[0], currentLocation[1], currentLocation[2]];
+            if(j == precisions){
+                self.addPrioritiesToRebuildChunk(currentLocation, 0, 0, planetLocation, priorityQueues, j+precisions-1);
+            }else{
+                self.addPrioritiesToRebuildChunk(currentLocation, currentChunkSize, chunkLength, planetLocation, priorityQueues, j+precisions-1);
+            }
+        }
+    }
 
 
     self.postMessage({
         type: 'result',
         id: self.id,
-        data: priorityQueues
+        data: {
+            list: priorityQueues,
+            debug: debug
+        }
     });
 
 
 }
 
+self.addPrioritiesToCollapseChunk = function(chunkLocation, size, chunkLength, planetLocation, priorityList, prio){
+    for(var i=-1; i<=1; i++){
+        for(var j=-1; j<=1; j++){
+            for(var k=-1; k<=1; k++){
+                priorityList[prio].push({
+                        type: 'update',
+                        location: [chunkLocation[0]+i*size + planetLocation[0],
+                                    chunkLocation[1]+j*size + planetLocation[1],
+                                    chunkLocation[2]+k*size + planetLocation[2]],
+                        size: size,
+                        length: chunkLength
+                });
+            }
+        }
+    }
+
+}
+self.addPrioritiesToRebuildChunk = function(chunkLocation, size, chunkLength, planetLocation, priorityList, prio){
+    while(priorityList[prio] == null){
+        priorityList.push([]);
+    }
+    priorityList[prio].push({
+            type: 'update',
+            location: [chunkLocation[0] + planetLocation[0],
+                        chunkLocation[1] + planetLocation[1],
+                        chunkLocation[2] + planetLocation[2]],
+            size: size,
+            length: chunkLength
+    });
+
+}
+
 self.generateGeometry = function(grid, length, size, chunkCenter, index, compressedData, isMain){
 
+    var profiler = new Profiler();
     //var geo = new THREE.Geometry();
     var vertices = [];
     var faces = [];
@@ -386,6 +486,7 @@ self.generateGeometry = function(grid, length, size, chunkCenter, index, compres
     if(index != 1){
         color = 0xDD0000;
     }
+    profiler.display("Generating Geometry");
 
     return {
             geo: {
@@ -412,6 +513,7 @@ self.generateChunk = function(taskData){
         var isMain = taskData.isMain;
         var compressedData = taskData.compressedData;
         var features = taskData.features;
+        var debug = taskData.debug;
         var elementRepresentations = [];
 
 
@@ -452,7 +554,10 @@ self.generateChunk = function(taskData){
         self.postMessage({
                 type: 'result',
                 id: self.id,
-                data : elementRepresentations
+                data : {
+                    list: elementRepresentations,
+                    debug: debug
+                }
         });
         //self.generateGeometry(newData, size, blockSize, chunkStart, chunkLocation, 2, null);
         return;
@@ -462,6 +567,8 @@ self.generateChunk = function(taskData){
 self.generateData = function(size, length, chunkCenter, isMax, features){
 
     //var chunkLocation = [planetLocation[0]+chunkStart[0]*size+size/2, planetLocation[1]+chunkStart[1]*size+size/2, planetLocation[2]+chunkStart[2]*size+size/2];
+
+    var profiler = new Profiler();
 
     var blockSize = size / length;
     var halfBlock = (blockSize/2);
@@ -476,6 +583,8 @@ self.generateData = function(size, length, chunkCenter, isMax, features){
             heightMap[x].push(GetHeight(chunkCenter[0]+blockSize*(x-(length/2)), chunkCenter[2]+blockSize*(z-(length/2))));
         }
     }
+
+    profiler.display("Creating HeightMap");
     //console.log(heightMap);
     var map = [];
     //console.dir(heightMap);
@@ -498,12 +607,16 @@ self.generateData = function(size, length, chunkCenter, isMax, features){
         }
     }
 
+    profiler.display("Creating 3d Array");
+
     //on va aller generer les données pour ces feature
     for(var i=0; i<features.length; i++){
         if(features[i].maxOnly == false || isMax){
             var functionString = features[i].type + "_GenerateFeatures";
             map = self[functionString](features[i], chunkCenter, length, size, map);
         }
+
+        profiler.display("Adding Features " + features[i].type);
     }
 
     return map;
@@ -635,8 +748,8 @@ self.OctavePerlin = function(x, y, z, octaves, persistence){
 GetHeight = function(x, z){
     //var actualx = (this.chunkStartX+(x*precision));
     //var actualz = (this.chunkStartY+(z*precision));
-    var scale = 2000;
-    return self.OctavePerlin(x/scale, z/scale, 0.9, 4, 5)*500;
+    var scale = 100000;
+    return (self.OctavePerlin(x/scale, z/scale, 0.9, 6, 5)*10000)-5000;
     //var scale = 1000;
     //return self.OctavePerlin(x/scale, z/scale, 0.9, 3, 4)*500;
     /*

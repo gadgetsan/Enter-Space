@@ -228,7 +228,7 @@
 		var world = new CANNON.World();
 		//world.gravity.set(0, -9.82, 0); // m/s²
 		world.gravity.set(0, -9.82, 0); // m/s²
-        world.broadphase = new CANNON.NaiveBroadphase();
+        //world.broadphase = new CANNON.NaiveBroadphase();
 
         // Create a slippery material (friction coefficient = 0.0)
         // Materials
@@ -246,7 +246,7 @@
         world.addContactMaterial(ground_ground_cm);
 
 		//scene.setGravity(new THREE.Vector3( 0, -15, 0 ));
-		var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+		var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 100000 );
 	    var clock = new THREE.Clock(); // Used in render() for controls.update()
 
 			// Camera moves with mouse, flies around with WASD/arrow keys
@@ -269,7 +269,7 @@
 			renderer.shadowMapSoft = true;
 
 			renderer.shadowCameraNear = 1;
-			renderer.shadowCameraFar = 10000;
+			renderer.shadowCameraFar = 100000;
 			renderer.shadowCameraFov = 0;
 
 			renderer.shadowMapBias = 0.0039;
@@ -285,8 +285,8 @@
 			var material = new THREE.MeshLambertMaterial({ color: randomColor() });
 
 			var perlinScaling = 10;
-			var startingLocation = [1000, 350, 1025];
-			var chunkSize = 50;
+			var startingLocation = [1000, 500, 1025];
+			var chunkSize = 35;
 		  var planet = new Planet(chunkSize, startingLocation);
 		  //planet.AddToScene(scene);
 
@@ -312,7 +312,7 @@
             dirLight.shadowCameraVisible = true;
 
     		dirLight.shadowCameraNear = 1;
-    		dirLight.shadowCameraFar = 10000;
+    		dirLight.shadowCameraFar = 100000;
 			dirLight.shadowDarkness = 0.9;
     		dirLight.shadowMapWidth = dirLight.shadowMapHeight = 512;
 
@@ -427,7 +427,7 @@ dirLight.target = block;
 				Frontdirection.y = 0;
 
 				Leftdirection.crossVectors(Frontdirection, new THREE.Vector3(0,1,0));
-				var force = 50;//10;
+				var force = 10;//10;
 				if ( moveForward ) sphereBody.velocity.set(Frontdirection.x*force,sphereBody.velocity.y,Frontdirection.z*force);
 				if ( moveBackward ) sphereBody.velocity.set(Frontdirection.x*-force,sphereBody.velocity.y,Frontdirection.z*-force);
 				if ( moveLeft ) sphereBody.velocity.set(Leftdirection.x*-force,sphereBody.velocity.y,Leftdirection.z*-force);
@@ -437,7 +437,7 @@ dirLight.target = block;
 				}
 
 
-				planet.Update(scene, ctrlObj);
+				planet.Update(scene, ctrlObj, delta);
 
 			};
 

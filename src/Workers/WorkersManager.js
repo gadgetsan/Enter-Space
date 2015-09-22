@@ -59,6 +59,9 @@ var WorkersManager = function(){
     }
 
     self.addTask = function(task, params, priority, callback){
+        while(self.workPiles[priority] == null){
+            self.workPiles.push([]);
+        }
         self.workPiles[priority].push({
             task: task,
             params: params,

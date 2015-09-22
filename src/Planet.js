@@ -11,17 +11,17 @@ var Planet = function(size, position){
 
     this.building = [];
 
-    this.Chunks = new Chunks(size, position, [/*new Caves(0.25, 5.0, 5.0),
+    this.Chunks = new Chunks(size, position, [/*new Caves(0.25, 5.0, 5.0),*/
                                                 new Ores(1.0, 4, 0.2),
-                                                new Ores(1.1, 5, 0.1),*/
-                                                new Ice(375),
-                                                new Water(175)]);
+                                                new Ores(1.1, 5, 0.1),
+                                                new Ice(1000),
+                                                new Water(200)]);
 
     this.currentHighLightLocation = new THREE.Vector3( 0, 0, 0 );
 
     this.highlightClosest = function(cameraPosition, lookAtVector){
         //console.log(cameraPosition);
-        //var blockSize = self.ChunkSize/self.Chunks.GetMaxRes();
+        var blockSize = self.ChunkSize/self.Chunks.ChunkLength;
         var location = new THREE.Vector3(0,0,0);
         location.copy(lookAtVector);
         //location.multiplyScalar(blockSize*2);
@@ -40,7 +40,7 @@ var Planet = function(size, position){
         var highLightx = blockSize * Math.round(lookAtRelativePosition.x / blockSize);
         var highLighty = blockSize * Math.round(lookAtRelativePosition.y / blockSize);
         var highLightz = blockSize * Math.round(lookAtRelativePosition.z / blockSize);
-            //console.log(looookAT);
+        //console.log(lookAtRelativePosition);
 
         if((self.currentHighLightLocation.x != highLightx || self.currentHighLightLocation.y != highLighty || self.currentHighLightLocation.z != highLightz)){
             if(self.highlightMesh != undefined){
@@ -50,6 +50,7 @@ var Planet = function(size, position){
             var material = new THREE.LineBasicMaterial({ color: 0xffffff });
             var geometry = new THREE.Geometry();
             geometry.vertices.push(
+            	new THREE.Vector3( -lookAtVector.x, -lookAtVector.y, -lookAtVector.z ),
             	new THREE.Vector3( 0, 0, 0 ),
             	new THREE.Vector3( 0, blockSize, 0 ),
             	new THREE.Vector3( 0, -blockSize, 0 ),
@@ -100,19 +101,21 @@ var Planet = function(size, position){
             return camera.position;
     }
 
-    this.Update = function(scene, camera){
+    this.Update = function(scene, camera, deltaTime){
+        self.Chunks.updateDebugMeshes(deltaTime);
         //this.ChunkGen.UpdateLocation(newChunk, direction);
         //var cameraRelativePosition = camera.position.sub(this.Position);
         var cameraPosition = new THREE.Vector3();
         cameraPosition.copy(camera.position);
-        cameraPosition.sub(this.Position);
         //console.log(cameraPosition);
+        cameraPosition.sub(this.Position);
         var halfChunk = this.ChunkSize;
         var xIndex = Math.round(cameraPosition.x / this.ChunkSize);
         var zIndex = Math.round(cameraPosition.z / this.ChunkSize);
         var yIndex = Math.round(cameraPosition.y / this.ChunkSize);
         if((this.oldxindex != xIndex || this.oldyindex != yIndex || this.oldzindex != zIndex)){
             //console.log("new: " + xIndex + ", " + yIndex + ", " + zIndex);
+            self.Chunks.UpdatePhysics([xIndex, yIndex, zIndex]);
             self.Chunks.UpdateLocation([xIndex, yIndex, zIndex], [-this.oldxindex + xIndex, -this.oldyindex + yIndex, -this.oldzindex + zIndex]);
         }
         this.oldxindex = xIndex;

@@ -1,3 +1,6 @@
+var DEBUG = false;
+var PROFILING = false;
+
 Array.prototype.contains = function(obj) {
     var i = this.length;
     while (i--) {
@@ -46,5 +49,20 @@ function distancePointToSegment(p, s1, s2){
     var b = c1/c2;
     var Pb = add(s1, mult(v, b));
     return distance(p, Pb);
+
+}
+
+var Profiler = function(){
+    var self = this;
+    var startTime = new Date().getTime();
+    this.lastTime = startTime
+    self.display = function(text){
+        if(!PROFILING){return;}
+        var time = new Date().getTime();
+        if((time - self.lastTime) > PROFILING){
+            console.log((time - self.lastTime) + "ms - " + text);
+        }
+        self.lastTime = time;
+    }
 
 }
