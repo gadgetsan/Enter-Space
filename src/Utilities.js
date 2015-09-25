@@ -1,5 +1,5 @@
 var DEBUG = false;
-var PROFILING = false;
+var PROFILING = 50;
 
 Array.prototype.contains = function(obj) {
     var i = this.length;

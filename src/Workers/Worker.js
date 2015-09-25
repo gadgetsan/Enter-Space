@@ -35,22 +35,39 @@ self.addEventListener('message', function(e) {
 self.ChangeVoxel = function(data){
     var voxelLocation= data.voxelLocation
     var newValue = data.newValue;
+    var options = data.options;
 
     //on commence par décompressé
+
     var uncompressedData = self.uncompressData(data.compressedData, data.length);
     //on change la valeur
-    uncompressedData[voxelLocation[0]][voxelLocation[1]][voxelLocation[2]] = newValue;
+    if(options != null){
+        if(options.type == "cube"){
+            for(var i=0; i<options.size && voxelLocation[0]+i <= data.length; i++){
+                for(var j=0; j<options.size && voxelLocation[1]+j <= data.length; j++){
+                    for(var k=0; k<options.size && voxelLocation[2]+k <= data.length; k++){
+                            uncompressedData[voxelLocation[0]+i][voxelLocation[1]+j][voxelLocation[2]+k] = newValue;
+                    }
+                }
+            }
+        }
+    }else{
+        uncompressedData[voxelLocation[0]][voxelLocation[1]][voxelLocation[2]] = newValue;
+    }
+
     //on recompresse
     var recompressedData = self.compressData(uncompressedData);
     //et on renvoie faire mettre à jour
 
     params = {
-        chunksSize: data.chunksSize,
+        size: data.size,
         length: data.length,
         location: data.location,
         planetLocation: data.planetLocation,
-        maxResolution: data.maxResolution,
-        compressedData: recompressedData
+        isMain: data.isMain,
+        features: data.features,
+        compressedData: recompressedData,
+        debugData : data.debug
     }
     //console.dir(params);
     self.generateChunk(params);
@@ -342,7 +359,6 @@ self.GenerateUpdateChunkList = function(data){
         }
     }
 
-
     self.postMessage({
         type: 'result',
         id: self.id,
@@ -526,8 +542,8 @@ self.generateChunk = function(taskData){
         if(isMain){
             //si on est à la plus haute resolution
             if(compressedData != null){
-                data = self.uncompressData(compressedData, maxRes);
-                newData = self.simpleResolutionForData(data, length);
+                data = self.uncompressData(compressedData, length);
+                newData = data; //self.simpleResolutionForData(data, length);
             }else{
                 data = self.generateData(size, length, chunkCenter, isMain, features);
                 newData = self.simpleResolutionForData(data, length);
@@ -616,7 +632,7 @@ self.generateData = function(size, length, chunkCenter, isMax, features){
             map = self[functionString](features[i], chunkCenter, length, size, map);
         }
 
-        profiler.display("Adding Features " + features[i].type);
+        profiler.display("Adding Features " + features[i].type + " for chunk " + chunkCenter);
     }
 
     return map;

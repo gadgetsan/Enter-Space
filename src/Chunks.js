@@ -3,13 +3,14 @@ var Chunks = function(chunkSize, startingLocation, features){
     this.List = [];
 
     this.Meshes = [];
+    this.Bodies = [];
     this.currentBody = null;
     this.debugMeshes = [];
 
     //this.resolutions = [15/*, 10, 2*/];//[30, 10, 2];
     //this.distances = [2/*, 5, 20*/];//[2, 5, 20];
 
-    this.ChunkLength = 35;
+    this.ChunkLength = 40;
     this.ChunkSize = chunkSize;
     this.Precisions = 4;//4;
 
@@ -83,6 +84,7 @@ var Chunks = function(chunkSize, startingLocation, features){
             self.List[index[0]][index[1]] = [];
         }
         self.List[index[0]][index[1]][index[2]] = compressedData;
+        //console.log("Saving data for " + index);
     }
 
     self.Get = function(index){
@@ -269,7 +271,12 @@ var Chunks = function(chunkSize, startingLocation, features){
             //newGeometry.computeVertexNormals();
 
             var material = self.elementMaterials[typeIndex-1];
-            var newMesh = new THREE.Mesh(newGeometry, material );
+            var newMesh;// = new Physijs.ConcaveMesh(newGeometry, material, 0);
+            if(isMain){
+                newMesh = new Physijs.ConcaveMesh(newGeometry, material, 0);
+            }else{
+                newMesh = new THREE.Mesh(newGeometry, material, 0);
+            }
             //var newMesh = new THREE.Mesh( new THREE.BoxGeometry(size, size, size ), new THREE.MeshLambertMaterial({color: 0x0000FF, opacity: 0.2, transparent: true }));
             //newMesh.material.side = THREE.DoubleSide;
             newMesh.position.x = actualLocation[0];
@@ -294,6 +301,10 @@ var Chunks = function(chunkSize, startingLocation, features){
     }
 
     self.UpdatePhysics = function(newChunkLocation){
+
+        var frameCount = 2;
+        //pour chaque Frame, on essai d'évaluer la chunk dans laquelle on va être, pour pouvoir la changer à l'avance
+
         //on va transformer la position reçu en position ultime
         var chunkAbsLocation = [self.planetLocation[0] + (self.ChunkSize * newChunkLocation[0] - self.ChunkSize/2),
                                         self.planetLocation[1] + (self.ChunkSize * newChunkLocation[1]) - self.ChunkSize/2,
@@ -384,32 +395,40 @@ var Chunks = function(chunkSize, startingLocation, features){
         });
     }
 
-    self.replaceVoxel = function(voxelLocation, newValue){
-        return;
+    self.replaceVoxel = function(voxelLocation, newValue, options){
         //TODO: FIX;
         //on va commencer par aller chercher le chunk contenant le Voxel
         //l'emplacement reçu en parametre est deja relatif
 
-        var chunkLocation = [Math.floor(voxelLocation.x / self.ChunkSize), Math.floor(voxelLocation.y / self.ChunkSize), Math.floor(voxelLocation.z / self.ChunkSize)];
-        var voxelSize = self.ChunkSize / self.resolutions[0];
-        var voxelRelativeLocation = [Math.floor((voxelLocation.x- chunkLocation[0]*self.ChunkSize)/voxelSize),
-                                        Math.floor((voxelLocation.y- chunkLocation[1]*self.ChunkSize)/voxelSize),
-                                        Math.floor((voxelLocation.z- chunkLocation[2]*self.ChunkSize)/voxelSize)];
+        var chunkLocation = [Math.round((voxelLocation.x-self.planetLocation[0])/self.ChunkSize)*self.ChunkSize+self.planetLocation[0],
+                                    Math.round((voxelLocation.y-self.planetLocation[1])/self.ChunkSize)*self.ChunkSize+self.planetLocation[1],
+                                    Math.round((voxelLocation.z-self.planetLocation[2])/self.ChunkSize)*self.ChunkSize+self.planetLocation[2]];
+        //console.log("adding data in chunk " + chunkLocation);
+        var voxelSize = self.ChunkSize / self.ChunkLength;
+        var voxelRelativeLocation = [Math.floor((voxelLocation.x- (chunkLocation[0]-self.ChunkSize/2))/voxelSize),
+                                        Math.floor((voxelLocation.y- (chunkLocation[1]-self.ChunkSize/2))/voxelSize),
+                                        Math.floor((voxelLocation.z- (chunkLocation[2]-self.ChunkSize/2))/voxelSize)];
 /*
+        console.log(voxelLocation);
         console.log(chunkLocation);
         console.log(voxelRelativeLocation);
         console.dir(self.Get(chunkLocation));
+        console.dir(self.List);
 */
+
+
         params = {
-            chunksSize: self.ChunkSize,
-            length: self.resolutions[0],
+            size: self.ChunkSize,
+            length: self.ChunkLength,
             location: chunkLocation,
             planetLocation: self.planetLocation,
-            maxResolution: self.resolutions[0],
+            isMain: true,
+            features: self.features,
             compressedData: self.Get(chunkLocation),
             voxelLocation: voxelRelativeLocation,
-            features: self.features,
-            newValue: newValue
+            newValue: newValue,
+            debugData : {},
+            options: options
         }
         Workers.addTask('ChangeVoxel', params, 0, self.UpdateChunk);
         //console.log(voxelRelativeLocation);
@@ -420,22 +439,22 @@ var Chunks = function(chunkSize, startingLocation, features){
             if(voxelRelativeLocation[i] == 0){
                 //console.log("updating below " + i);
                 var newVoxelLocation = [voxelRelativeLocation[0], voxelRelativeLocation[1], voxelRelativeLocation[2]];
-                newVoxelLocation[i] = self.resolutions[0];
+                newVoxelLocation[i] = self.ChunkLength;
                 var newChunkLocation = [chunkLocation[0], chunkLocation[1], chunkLocation[2]];
                 newChunkLocation[i] = chunkLocation[i]-1
                 var newParams = {
                     chunksSize: self.ChunkSize,
-                    length: self.resolutions[0],
+                    length: self.ChunkLength,
                     location: newChunkLocation,
                     planetLocation: self.planetLocation,
-                    maxResolution: self.resolutions[0],
+                    maxResolution: self.ChunkLength,
                     compressedData: self.Get(newChunkLocation),
                     voxelLocation: newVoxelLocation,
                     features: self.features,
                     newValue: newValue
                 }
-                Workers.addTask('ChangeVoxel', newParams, 0, self.UpdateChunk);
-            }else if(voxelRelativeLocation[i] == self.resolutions[0]){
+                //Workers.addTask('ChangeVoxel', newParams, 0, self.UpdateChunk);
+            }else if(voxelRelativeLocation[i] == self.ChunkLength){
                 //console.log("updating above " + i);
                 var newVoxelLocation = [voxelRelativeLocation[0], voxelRelativeLocation[1], voxelRelativeLocation[2]];
                 newVoxelLocation[i] = 0;
@@ -443,16 +462,16 @@ var Chunks = function(chunkSize, startingLocation, features){
                 newChunkLocation[i] = chunkLocation[i]+1
                 var newParams = {
                     chunksSize: self.ChunkSize,
-                    length: self.resolutions[0],
+                    length: self.ChunkLength,
                     location: newChunkLocation,
                     planetLocation: self.planetLocation,
-                    maxResolution: self.resolutions[0],
+                    maxResolution: self.ChunkLength,
                     compressedData: self.Get(newChunkLocation),
                     voxelLocation: newVoxelLocation,
                     features: self.features,
                     newValue: newValue
                 }
-                Workers.addTask('ChangeVoxel', newParams, 0, self.UpdateChunk);
+                //Workers.addTask('ChangeVoxel', newParams, 0, self.UpdateChunk);
             }
         }
 

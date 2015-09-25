@@ -11,46 +11,53 @@ var Planet = function(size, position){
 
     this.building = [];
 
-    this.Chunks = new Chunks(size, position, [/*new Caves(0.25, 5.0, 5.0),*/
-                                                new Ores(1.0, 4, 0.2),
-                                                new Ores(1.1, 5, 0.1),
+    this.Chunks = new Chunks(size, position, [new Caves(0.25, 2.0, 2.0),
+                                                /*new Ores(1.0, 4, 0.2, 2),
+                                                new Ores(1.1, 5, 0.1, 2),*/
                                                 new Ice(1000),
                                                 new Water(200)]);
 
     this.currentHighLightLocation = new THREE.Vector3( 0, 0, 0 );
 
     this.highlightClosest = function(cameraPosition, lookAtVector){
-        //console.log(cameraPosition);
-        var blockSize = self.ChunkSize/self.Chunks.ChunkLength;
+
         var location = new THREE.Vector3(0,0,0);
         location.copy(lookAtVector);
-        //location.multiplyScalar(blockSize*2);
-        //location.add(cameraPosition);
+        location.multiplyScalar(10);
+        location.add(cameraPosition);
 
-        var lookAtRelativePosition = location;
+        var blockSize = self.ChunkSize/self.Chunks.ChunkLength;
+
+        var lookAtRelativePosition = new THREE.Vector3(0,0,0);
         var caster = new THREE.Raycaster();
         caster.set(cameraPosition, lookAtVector);
         var collisions = caster.intersectObjects(scene.children);
-        var looookAT = new THREE.Vector3(0,0,0);
-         if (collisions.length > 0){
-             lookAtRelativePosition = collisions[0].point.sub(self.Position);
-             looookAT =collisions[0].point;
-         }
+        var closestCollision = 0;
+        for(var i=0; i< collisions.length; i++){
+             if (collisions[i].object.name != "cross"){
+                 //console.dir(collisions[i]);
+                 closestCollision = i;
+                 lookAtRelativePosition.copy(collisions[i].point);
+                 break;
+             }
+        }
 
-        var highLightx = blockSize * Math.round(lookAtRelativePosition.x / blockSize);
-        var highLighty = blockSize * Math.round(lookAtRelativePosition.y / blockSize);
-        var highLightz = blockSize * Math.round(lookAtRelativePosition.z / blockSize);
+
+        var highLightx = Math.round(lookAtRelativePosition.x / blockSize) * blockSize;
+        var highLighty = Math.round(lookAtRelativePosition.y / blockSize) * blockSize;
+        var highLightz = Math.round(lookAtRelativePosition.z / blockSize) * blockSize;
         //console.log(lookAtRelativePosition);
 
         if((self.currentHighLightLocation.x != highLightx || self.currentHighLightLocation.y != highLighty || self.currentHighLightLocation.z != highLightz)){
             if(self.highlightMesh != undefined){
                 scene.remove(self.highlightMesh);
+                self.highlightMesh.geometry.dispose();
+                self.highlightMesh.material.dispose();
             }
           	var blockSize = blockSize;
             var material = new THREE.LineBasicMaterial({ color: 0xffffff });
             var geometry = new THREE.Geometry();
             geometry.vertices.push(
-            	new THREE.Vector3( -lookAtVector.x, -lookAtVector.y, -lookAtVector.z ),
             	new THREE.Vector3( 0, 0, 0 ),
             	new THREE.Vector3( 0, blockSize, 0 ),
             	new THREE.Vector3( 0, -blockSize, 0 ),
@@ -62,10 +69,13 @@ var Planet = function(size, position){
             	new THREE.Vector3(0, 0, -blockSize)
             );
         	var block = new THREE.Line( geometry, material);
-        	block.position.x = highLightx+self.Position.x;
-        	block.position.y = highLighty+self.Position.y;
-        	block.position.z = highLightz+self.Position.z;
+            //console.log("CROSS: " + location.x+ ", " + location.y + ", " + location.z);
+        	block.position.x = highLightx;
+        	block.position.y = highLighty;
+        	block.position.z = highLightz;
+            //console.log("ACTUAL CROSS: " + block.position.x+ ", " + block.position.y + ", " + block.position.z);
             //console.log(block.position);
+            block.name = "cross";
         	scene.add(block);
             self.highlightMesh = block;
         }
@@ -81,7 +91,11 @@ var Planet = function(size, position){
     }
 
     this.addClosest = function(){
-            self.Chunks.replaceVoxel(self.currentHighLightLocation, 1)
+        //on va faire un 'cube'
+
+        var blockSize = self.ChunkSize/self.Chunks.ChunkLength;
+        var location = new THREE.Vector3(self.currentHighLightLocation.x, self.currentHighLightLocation.y, self.currentHighLightLocation.z );
+        self.Chunks.replaceVoxel(location, 3, {type: "cube", size: 3});
     }
 
     this.removeAtLocation = function(camera){
@@ -115,7 +129,7 @@ var Planet = function(size, position){
         var yIndex = Math.round(cameraPosition.y / this.ChunkSize);
         if((this.oldxindex != xIndex || this.oldyindex != yIndex || this.oldzindex != zIndex)){
             //console.log("new: " + xIndex + ", " + yIndex + ", " + zIndex);
-            self.Chunks.UpdatePhysics([xIndex, yIndex, zIndex]);
+            //self.Chunks.UpdatePhysics([xIndex, yIndex, zIndex]);
             self.Chunks.UpdateLocation([xIndex, yIndex, zIndex], [-this.oldxindex + xIndex, -this.oldyindex + yIndex, -this.oldzindex + zIndex]);
         }
         this.oldxindex = xIndex;
@@ -148,63 +162,3 @@ var Planet = function(size, position){
     }
 
 }
-/*
-    this.changeResolution = function(xIndex, yIndex, zIndex, newResolution){
-        var self = this;
-        //console.dir(this.Chunks);
-        var newChunk = self.Chunks[xIndex][zIndex][yIndex];
-        //on va changer la resolution de la nouvelle chunk
-        //newChunk.material.color.setHex(0xff0000);
-        var newMapTower = self.ChunksData[xIndex][zIndex].GetMap(newResolution, function(newMapTower){
-            //console.dir(newMapTower);
-            var newMap = newMapTower[yIndex];
-            //console.dir(newMap);
-            //var newGeometry = MarchingCube.buildChunkGeometry(newMap, this.ChunkSize+newResolution);
-            var workerIndex = Workers.Add('MarchingCube', [newMap, self.ChunkSize+newResolution], function(result){
-                //console.dir(newGeometry);
-                //on doit reconstruire la geometrie parce que les fonctione ne sont pas donné par le thread
-                var newGeometry = new THREE.Geometry();
-                for (var i = 0; i < result.vertices.length; i++) {
-                    newGeometry.vertices.push(new THREE.Vector3(result.vertices[i][0], result.vertices[i][1], result.vertices[i][2]))
-                }
-                for (var i = 0; i < result.faces.length; i++) {
-                    newGeometry.faces.push(new THREE.Face3(result.faces[i][0], result.faces[i][1], result.faces[i][2]))
-                }
-                //newGeometry.faces = result.faces;
-                newGeometry.computeFaceNormals();
-                var color = 0x00BB00;
-                if(newResolution == 1){
-                    color = 0x0000BB;
-                }
-                var newMesh = {};
-                if(newGeometry.faces.length > 0){
-                    newMesh = new Physijs.ConcaveMesh(newGeometry, new THREE.MeshLambertMaterial({color: color}), 0, 50, 50);
-                }else{
-                    console.log("Chunk " + xIndex + ", " + yIndex + ", " + zIndex + " is empty or undefined");
-                    newMesh.empty = true;
-                    newMesh.position = {};
-                }
-                newMesh.position.x = newChunk.position.x;
-                newMesh.position.y = newChunk.position.y;
-                newMesh.position.z = newChunk.position.z;
-                if(!newChunk.empty && newChunk.geometry.faces.length > 0){
-                    //console.log(newChunk._physijs.id);
-                    scene.remove(newChunk);
-                    //console.dir(newChunk);
-                    //newChunk.dispose();
-                }else{
-                    //console.log("Chunk " + xIndex + ", " + yIndex + ", " + zIndex + " is empty or undefined");
-                    //console.dir(newChunk);
-                }
-
-                if(!newMesh.empty){
-                    scene.add(newMesh);
-                }
-                self.Chunks[xIndex][zIndex][yIndex] = newMesh;
-            });
-        });
-
-    }
-
-}
-*/
