@@ -29,6 +29,9 @@ class Keyboard
             #SPACE
             when 32
                 @Control.moveUp = true;
+            #Alt
+            when 18
+                @Control.moveDown = true;
 
     onKeyUp: (event) =>
         switch event.keyCode
@@ -53,3 +56,6 @@ class Keyboard
             #SPACE
             when 32
                 @Control.moveUp = false;
+            #Alt
+            when 18
+                @Control.moveDown = false;

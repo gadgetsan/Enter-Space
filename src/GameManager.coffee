@@ -10,7 +10,10 @@ class GameManager
 
         #Ici on peut créer le Setup Initial
         @GameObjects = [];
-        @GameObjects.push(new Grid());
+        @Grid = new Grid()
+        @GameObjects.push(@Grid);
+
+        @Camera.Subscribe("move", @Grid.CameraMoved)
 
     Update: (dt)->
         @Control.Update(dt)

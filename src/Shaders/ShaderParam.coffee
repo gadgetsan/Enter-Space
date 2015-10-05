@@ -8,6 +8,7 @@ class ShaderParam
     PushToGPU: (value)->
         switch @type
             when "Matrix4fv" then GL.uniformMatrix4fv(@location, false, value)
+            when "Vector3fv" then GL.uniform3fv(@location, value)
             when "VertexPointer" then GL.vertexAttribPointer(@location, @size, GL.FLOAT, false, 0, 0)
 
     CreateBuffer: (data)->

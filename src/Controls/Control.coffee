@@ -7,6 +7,7 @@ class Control
         @moveRight= false
         @turnRight= false
         @moveUp= false
+        @moveDown= false
 
     Update: (dt) ->
         if @turnLeft
@@ -23,3 +24,5 @@ class Control
             @Camera.MoveBackward(0.01*dt)
         if @moveUp
             @Camera.MoveUp(0.001*dt)
+        if @moveDown
+            @Camera.MoveDown(0.001*dt)
