@@ -4,7 +4,7 @@ main = () ->
 
     manager = new GameManager();
 
-    GL.clearColor(1.0, 1.0, 1.0, 1.0)
+    GL.clearColor(0.0, 0.0, 0.0, 1.0)
 
 
     animate = () ->

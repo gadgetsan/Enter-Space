@@ -1,3 +1,6 @@
+#LES CONTANTES
+GRAV = 6.67408 * Math.pow(10, -11)
+
 CANVAS=document.getElementById("canvas")
 
 CANVAS.width=window.innerWidth

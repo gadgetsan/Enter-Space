@@ -1,0 +1,2 @@
+class CellPoint
+    constructor: (@Position)->

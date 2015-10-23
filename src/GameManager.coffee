@@ -10,7 +10,8 @@ class GameManager
 
         #Ici on peut créer le Setup Initial
         @GameObjects = [];
-        @Grid = new Grid()
+        @Grid = new Grid(40, 40, [0,-50,0], 200)
+        @Grid.Add(new Cube())
         @GameObjects.push(@Grid);
 
         @Camera.Subscribe("move", @Grid.CameraMoved)

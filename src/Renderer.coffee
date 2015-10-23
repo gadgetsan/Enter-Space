@@ -2,6 +2,7 @@ class Renderer
     constructor: (@shaderProgram, @Camera) ->
         @Pmatrix = mat4.create()
         @BaseMVMatrix = @Camera.MVMatrix
+        #Pi/2 = 1.5707963267
         mat4.perspective(@Pmatrix, 0.785, CANVAS.width /CANVAS.height, 0.1, 100)
 
     SetShader: (@shaderProgram)->
