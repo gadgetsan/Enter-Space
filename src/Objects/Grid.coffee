@@ -138,13 +138,14 @@ class Grid extends GameObject
                         child.isColliding = false
 
 
+            delta = []
+            vec3.sub(delta, child.Location, @Location)
             #Gravité
             if(child.Mass != 0 )
-                delta = []
-                vec3.sub(delta, child.Location, @Location)
                 distance = vec3.len(delta)
                 vec3.normalize(delta, delta)
                 accLen = (GRAV * @Mass) / (distance * distance) * (dt/1000)
+                #console.log(child.Location)
                 acc = []
                 vec3.scale(acc, delta, -accLen)
                 if( not child.isColliding)
@@ -152,3 +153,4 @@ class Grid extends GameObject
                 else
                     emptyVector = [0,0,0]
                     vec3.sub(child.Velocity, emptyVector, child.Velocity)
+            child.UpdateDownDirection(delta)

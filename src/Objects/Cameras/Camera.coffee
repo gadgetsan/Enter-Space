@@ -7,6 +7,7 @@ class Camera
         #mat4.lookAt(@MVMatrix, [0, 0, 1], [0, 0, 0], [0, 1, 0])
         #mat4.translate(@MVMatrix, @MVMatrix, [0.0, -2.0, 0.0])
         vec3.add(@Position, @Position, [0, 0.0, 0.0])
+        @Up = [0,0,1]
         @UpdateMV([0, 0, 0])
         @Subscribers = []
 
@@ -19,7 +20,33 @@ class Camera
         mat4.translate(@MVMatrix, @MVMatrix, @Position)
         inverted = vec3.create()
         vec3.subtract(inverted, inverted, movement)
-        @Notify("move", inverted)
+        if movement != [0,0,0]
+            @Notify("move", inverted)
+        return inverted
+
+    ChangeDownDirection: (down)->
+        center = [@Position[0], @Position[1], @Position[2]+1]
+        newUp = [0,0,0]
+        vec3.sub(newUp, newUp, down)
+        @Up = [0,1,0]
+        #console.log(down)
+        newUp[1] = -newUp[1]
+        #On va faire un produit vectoriel pour trouver l'axe de rotation
+        rotationAxis = [0,0,0]
+        normNew = []
+        vec3.normalize(normNew, newUp)
+        normOld = []
+        vec3.normalize(normOld, @Up)
+        vec3.cross(rotationAxis, normNew, normOld)
+        angle = Math.acos(vec3.dot(normNew, normOld))
+        #console.log(rotationAxis)
+        #console.log(normNew)
+        #console.log(normOld)
+        #console.log()
+        #mat4.lookAt(@MVMatrix, @Position, center, normNew)
+        #mat4.rotate(@MVMatrix, @MVMatrix, -angle, rotationAxis)
+        #quat.setAxisAngle(@Quaternion, rotationAxis, -angle)
+        #@Up = newUp
 
     Subscribe: (to, cb) ->
         @Subscribers.push({type: to, callback: cb})
@@ -37,19 +64,19 @@ class Camera
         @UpdateMV([0, 0, 0])
 
     MoveLeft: (dist) ->
-        @UpdateMV([dist, 0, 0])
+        return @UpdateMV([dist, 0, 0])
 
     MoveRight: (dist) ->
-        @UpdateMV([-dist, 0, 0])
+        return @UpdateMV([-dist, 0, 0])
 
     MoveForward: (dist) ->
-        @UpdateMV([0, 0, dist])
+        return @UpdateMV([0, 0, dist])
 
     MoveBackward: (dist) ->
-        @UpdateMV([0, 0, -dist])
+        return @UpdateMV([0, 0, -dist])
 
     MoveUp: (dist) ->
-        @UpdateMV([0, -dist, 0])
+        return @UpdateMV([0, -dist, 0])
 
     MoveDown: (dist) ->
-        @UpdateMV([0, dist, 0])
+        return @UpdateMV([0, dist, 0])

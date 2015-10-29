@@ -34,4 +34,54 @@ Geo = {
 
         return sliced
 
+    UncompressData: (compressedData, length)->
+        cubeLength = length+1
+
+        jChange = cubeLength
+        iChange = cubeLength * cubeLength
+        total = 0
+        uncompressedData = []
+        location = 0
+        for m in [0 .. compressedData.length-1] by 2
+            total += compressedData[m]
+            for n in [0 .. compressedData[m]-1]
+                i = Math.floor(location / iChange)
+                j = Math.floor((location - (i*iChange)) / jChange)
+                k = location % jChange
+                if(uncompressedData[i] == undefined)
+                    uncompressedData[i] = []
+
+                if(uncompressedData[i][j] == undefined)
+                    uncompressedData[i][j] = []
+
+                uncompressedData[i][j][k] = compressedData[m+1]
+                location++
+        return uncompressedData
+
+    CompressData: (data)->
+        compressedData = [];
+        lastValue = -1;
+        consecCount = 1;
+
+        for i in [0 .. data.length-1]
+            for j in [0 .. data[i].length-1]
+                for  k in [0 .. data[i][j].length-1]
+                    if data[i][j][k] == lastValue
+                        consecCount++
+                    else
+                        if lastValue != -1
+                            compressedData.push(consecCount)
+                            compressedData.push(lastValue)
+
+                        consecCount = 1
+                        lastValue = data[i][j][k]
+
+        compressedData.push(consecCount)
+        compressedData.push(lastValue)
+        #oldSize = data.length*data.length*data.length
+        #newSize = compressedData.length
+        #console.log("Compression Rate: " + ((oldSize-newSize)/oldSize)*100 + " %")
+        return compressedData
+
+
 }

@@ -16,6 +16,8 @@ class GameObject
         @Location = newLocation
         mat4.translate(@Renderable.MVmatrix, @Renderable.MVmatrix, delta)
 
+    UpdateDownDirection: (newDown)->
+
     Update: (dt)->
 
         # On met à jour la Position avec la Vitesse (qui est en m/s)

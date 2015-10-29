@@ -3,18 +3,19 @@ class GameManager
         @ShaderProgram = new ShaderProgram(new VertexBasic() , new FragmentBasic())
         @ShaderProgram.Use()
 
-        @Camera = new Camera()
-        @Renderer = new Renderer(@ShaderProgram, @Camera)
-        @Control = new Control(@Camera)
+        @Player = new Player()
+        @Renderer = new Renderer(@ShaderProgram, @Player.Camera)
+        @Control = new Control(@Player)
         @Keyboard = new Keyboard(@Control)
 
         #Ici on peut créer le Setup Initial
         @GameObjects = [];
         @Grid = new Grid(40, 40, [0,-50,0], 200)
         @Grid.Add(new Cube())
+        @Grid.Add(@Player)
         @GameObjects.push(@Grid);
 
-        @Camera.Subscribe("move", @Grid.CameraMoved)
+        @Player.Camera.Subscribe("move", @Grid.CameraMoved)
 
     Update: (dt)->
         @Control.Update(dt)
