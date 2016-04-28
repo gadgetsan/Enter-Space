@@ -2,22 +2,29 @@ class Camera
     constructor: () ->
         @MVMatrix = mat4.create()
         @Position = vec3.create()
-        @Quaternion = quat.create();
+        @RotationMatrix = mat4.create();
         #mat4.identity(@MVMatrix);
         #mat4.lookAt(@MVMatrix, [0, 0, 1], [0, 0, 0], [0, 1, 0])
         #mat4.translate(@MVMatrix, @MVMatrix, [0.0, -2.0, 0.0])
         vec3.add(@Position, @Position, [0, 0.0, 0.0])
-        @Up = [0,0,1]
+        @Up = [0,1,0]
         @UpdateMV([0, 0, 0])
         @Subscribers = []
 
     UpdateMV: (movement)->
-        mat4.fromQuat(@MVMatrix, @Quaternion)
-        invertedQuat = quat.create()
-        quat.invert(invertedQuat, @Quaternion)
-        vec3.transformQuat(movement, movement, invertedQuat)
+        #On recréé notre matrice de transformation à partir de notre quaternion
+        #@MVMatrix = @RotationMatrix #mat4.fromQuat(@MVMatrix, @Quaternion)
+        mat4.identity(@MVMatrix)
+        mat4.multiply(@MVMatrix, @MVMatrix, @RotationMatrix)
+
+        #Ensuite, on transforme notre déplacement pour qu'il soit dans le même plan que notre camera
+        invertedRotation = mat4.create()
+        mat4.invert(invertedRotation, @RotationMatrix)
+        vec3.transformMat4(movement, movement, invertedRotation)
         vec3.add(@Position, @Position, movement)
         mat4.translate(@MVMatrix, @MVMatrix, @Position)
+
+        #ensuite, on retourne le déplacement inversé parce que la camera vois tout inversé...
         inverted = vec3.create()
         vec3.subtract(inverted, inverted, movement)
         if movement != [0,0,0]
@@ -25,28 +32,25 @@ class Camera
         return inverted
 
     ChangeDownDirection: (down)->
-        center = [@Position[0], @Position[1], @Position[2]+1]
+        #On trouve le up à partir du down
         newUp = [0,0,0]
         vec3.sub(newUp, newUp, down)
-        @Up = [0,1,0]
-        #console.log(down)
-        newUp[1] = -newUp[1]
-        #On va faire un produit vectoriel pour trouver l'axe de rotation
+
+        #Ensuite, on trouve le vecteur de rotation (En faisant un produit croisé)
         rotationAxis = [0,0,0]
         normNew = []
         vec3.normalize(normNew, newUp)
         normOld = []
         vec3.normalize(normOld, @Up)
         vec3.cross(rotationAxis, normNew, normOld)
+
+        #Finalement, on trouve l'angle entre les 2 vecteurs
         angle = Math.acos(vec3.dot(normNew, normOld))
-        #console.log(rotationAxis)
-        #console.log(normNew)
-        #console.log(normOld)
-        #console.log()
-        #mat4.lookAt(@MVMatrix, @Position, center, normNew)
-        #mat4.rotate(@MVMatrix, @MVMatrix, -angle, rotationAxis)
-        #quat.setAxisAngle(@Quaternion, rotationAxis, -angle)
-        #@Up = newUp
+
+        #et on effectue la rotation
+        mat4.rotate(@RotationMatrix, @RotationMatrix, angle, rotationAxis)
+
+        @Up = normNew
 
     Subscribe: (to, cb) ->
         @Subscribers.push({type: to, callback: cb})
@@ -56,11 +60,11 @@ class Camera
             subscriber.callback(item, this) for subscriber in @Subscribers when subscriber.type is type
 
     TurnLeftDeg: (deg) ->
-        quat.rotateY(@Quaternion, @Quaternion, -Geo.DegToRad(deg))
+        mat4.rotateY(@RotationMatrix, @RotationMatrix, -Geo.DegToRad(deg))
         @UpdateMV([0, 0, 0])
 
     TurnRightDeg: (deg) ->
-        quat.rotateY(@Quaternion, @Quaternion, Geo.DegToRad(deg))
+        mat4.rotateY(@RotationMatrix, @RotationMatrix, Geo.DegToRad(deg))
         @UpdateMV([0, 0, 0])
 
     MoveLeft: (dist) ->

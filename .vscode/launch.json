@@ -1,0 +1,20 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+        {
+            "name": "attach index.html",
+            "type": "chrome",
+            "request": "launch",
+            "port": 9222,
+            "runtimeArgs": [
+                "--new-window", //Open in new window
+                "--user-data-dir=C:/dev/", //Can be any directory. Makes chrome load in a different directory so that it opens in a new instance.
+                "--remote-debugging-port=9222" //Open in port 9222 (standard chrome debug port)
+            ],
+            "file": "${workspaceRoot}/index.html",
+            "url": "file:///D:/OneDrive/DEV/Enter-Space/index.html",
+            "webRoot": "${workspaceRoot}",
+            "sourceMaps": true
+        }
+	]
+}

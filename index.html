@@ -11,31 +11,34 @@
   <script type="text/javascript" src="external/js/gl-matrix.js"></script>
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/async/1.5.0/async.min.js"></script>
 
-  <script type="text/javascript" src="bld/init.js"></script>
-  <script type="text/javascript" src="bld/Objects/CellBlock.js"></script>
-  <script type="text/javascript" src="bld/Utilities/MarchingCube.js"></script>
-  <script type="text/javascript" src="bld/Utilities/PerlinNoise.js"></script>
+  <!--UTILITIES FILES -->
+  <script type="text/javascript" src="bld/Utilities/Utils.js"></script>
   <script type="text/javascript" src="bld/Utilities/Geo.js"></script>
-  <script type="text/javascript" src="bld/Utilities/Profiler.js"></script>
+  
+  <!--INITIALISATION FILES -->
+  <script type="text/javascript" src="bld/init.js"></script>
+  <script type="text/javascript" src="bld/main.js"></script>
+  
+  <!--RENDERING ELEMENTS -->
+  <script type="text/javascript" src="bld/Shaders/ShaderProgram.js"></script>
   <script type="text/javascript" src="bld/Shaders/ShaderParam.js"></script>
   <script type="text/javascript" src="bld/Shaders/Shader.js"></script>
-  <script type="text/javascript" src="bld/Shaders/ShaderProgram.js"></script>
-  <script type="text/javascript" src="bld/Shaders/FragmentBasic.js"></script>
   <script type="text/javascript" src="bld/Shaders/VertexBasic.js"></script>
+  <script type="text/javascript" src="bld/Shaders/FragmentBasic.js"></script>
+  <script type="text/javascript" src="bld/Renderer.js"></script>
   <script type="text/javascript" src="bld/Renderables/Renderable.js"></script>
-  <script type="text/javascript" src="bld/Renderables/TriangleRenderable.js"></script>
   <script type="text/javascript" src="bld/Renderables/CubeRenderable.js"></script>
-  <script type="text/javascript" src="bld/Objects/GameObject.js"></script>
-  <script type="text/javascript" src="bld/Objects/Cameras/Camera.js"></script>
-  <script type="text/javascript" src="bld/Objects/Players/Player.js"></script>
-  <script type="text/javascript" src="bld/Objects/Triangle.js"></script>
-  <script type="text/javascript" src="bld/Objects/Square.js"></script>
-  <script type="text/javascript" src="bld/Objects/Cell.js"></script>
-  <script type="text/javascript" src="bld/Objects/Grid.js"></script>
-  <script type="text/javascript" src="bld/Objects/Cube.js"></script>
+  
+  <!--CONTROL ELEMENTS -->
   <script type="text/javascript" src="bld/Controls/Control.js"></script>
   <script type="text/javascript" src="bld/Controls/Keyboard.js"></script>
+  <script type="text/javascript" src="bld/Utilities/KeyCode.js"></script>
+  
+  <!--GAME ELEMENTS -->
+  <script type="text/javascript" src="bld/Objects/Cameras/Camera.js"></script>
+  <script type="text/javascript" src="bld/Objects/GameObject.js"></script>
+  <script type="text/javascript" src="bld/Objects/Square.js"></script>
+  <script type="text/javascript" src="bld/Objects/Cube.js"></script>
+  <script type="text/javascript" src="bld/Objects/Players/Player.js"></script>
   <script type="text/javascript" src="bld/GameManager.js"></script>
-  <script type="text/javascript" src="bld/Renderer.js"></script>
-  <script type="text/javascript" src="bld/main.js"></script>
 </html>

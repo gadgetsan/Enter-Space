@@ -12,7 +12,7 @@ class Grid extends GameObject
 
         @Length = length
         @Size = size
-        @Mass = 1000000000000
+        @Mass = 1000000000000000
 
         @Data = []
 
@@ -110,6 +110,8 @@ class Grid extends GameObject
         super(dt)
         #Pour chaque enfant avec une masse, on applique la gravité.
         for child in @Children
+            #Position relative du children
+            relativePosition = []
             #Collision
             if child.CanCollide
                 #on calcule la collision pour chaque point renderable (pas juste le centre de masse)
@@ -118,9 +120,8 @@ class Grid extends GameObject
                         #On va calculer sa position relative à la grille
                         pointPosition = [child.Renderable.position[i], child.Renderable.position[i+1], child.Renderable.position[i+2]]
                         vec3.add(pointPosition, pointPosition, child.Location)
-                        relativePosition = []
                         vec3.sub(relativePosition, pointPosition, @gridStartLocation)
-                        gridLocation = [Math.round(relativePosition[0]/@blockSize), Math.round(relativePosition[1]/@blockSize), Math.round(relativePosition[2]/@blockSize)]
+                        gridLocation = [Math.round(relativePosition[0]/this.blockSize), Math.round(relativePosition[1]/this.blockSize), Math.round(relativePosition[2]/this.blockSize)]
                         if @Data[gridLocation[0]] and @Data[gridLocation[0]][gridLocation[1]] and @Data[gridLocation[0]][gridLocation[1]][gridLocation[2]] != 0
                             console.log("Collision detected!!")
                             child.isColliding = true
@@ -128,9 +129,8 @@ class Grid extends GameObject
                         else
                             child.isColliding = false
                 else
-                    relativePosition = []
                     vec3.sub(relativePosition, child.Location, @gridStartLocation)
-                    gridLocation = [Math.round(relativePosition[0]/@blockSize), Math.round(relativePosition[1]/@blockSize), Math.round(relativePosition[2]/@blockSize)]
+                    gridLocation = [Math.round(relativePosition[0]/@blockSize), Math.round(relativePosition[1]/this.blockSize), Math.round(relativePosition[2]/this.blockSize)]
                     if @Data[gridLocation[0]][gridLocation[1]][gridLocation[2]] != 0
                         console.log("Collision detected!!")
                         child.isColliding = true
@@ -148,9 +148,24 @@ class Grid extends GameObject
                 #console.log(child.Location)
                 acc = []
                 vec3.scale(acc, delta, -accLen)
-                if( not child.isColliding)
+                if( not child.isColliding )
                     vec3.add(child.Velocity, child.Velocity, acc)
+                else if (child instanceof Player)
+                    #juste pour tester, on met sa velocity à 0
+                    child.Velocity = vec3.create();
                 else
-                    emptyVector = [0,0,0]
-                    vec3.sub(child.Velocity, emptyVector, child.Velocity)
+                    #si on a une collisio
+                    #On normalise le vecteur de la position de la colision
+                    normalizedColl = vec3.create()
+                    vec3.normalize(normalizedColl, relativePosition)
+                    console.dir(child)
+                    console.log("Old Speed: " + child.Velocity)
+                    #On trouve la portion du mouvement qui sera conservé lors de la collision(perp au vecteur de collision)
+                    a1 = vec3.dot(child.Velocity, normalizedColl)
+                    vec3.scaleAndAdd(child.Velocity, child.Velocity, normalizedColl, 2*a1)
+                    console.log("Mutliplier: " + 2*a1)
+                    console.log("New Speed: " + child.Velocity)
+
+                    #emptyVector = [0,0,0]
+                    #vec3.sub(child.Velocity, emptyVector, child.Velocity)
             child.UpdateDownDirection(delta)
