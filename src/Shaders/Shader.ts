@@ -34,4 +34,12 @@ class Shader {
         //nomDeVar = GL.getAttribLocation(program, "nomDeVar")
         //GL.enableVertexAttribArray(nomDeVar)
     }
+    
+    startRender(program: ShaderProgram, camera: Camera){
+        //le Shader de base, on ne fait rien ici...
+    }
+    
+    renderElement(program: ShaderProgram, render: Render){
+        //le Shader de base, on ne fait rien ici...
+    }
 }

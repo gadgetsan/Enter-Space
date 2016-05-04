@@ -5,15 +5,15 @@ class Player extends GameObject{
     /**
      *
      */
-    camera: Camera;
-    mass: number;
-    constructor() {
-        super();
-        this.camera = new Camera();
-        this.mass = 10;
+    constructor(eventManager: EventManager) {
+        super(eventManager);
         
+        //on créé nos composants pour controller
+        this.components["Behavior"] = new ControllerBehavior(this);
+        this.components["Camera"] = new Camera(this);
+        this.components["transform"] = new Transform(this, vec3.create(), mat4.create(), 1.0);
     }
-    
+    /*
     updateDownDirecte(newDown: Array<number>){
         this.camera.changeDownDirection(newDown);
     }
@@ -53,4 +53,5 @@ class Player extends GameObject{
     update(dt: number){
         super.update(dt);
     }
+    */
 }

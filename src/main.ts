@@ -3,10 +3,12 @@
 function main() {
     var timeNow = new Date().getTime();
     var lastTime = timeNow;
-    
-    var manager = new GameManager();
-    
+        
     GL.clearColor(0.0, 0.0, 0.0, 1.0);
+    
+    //on créé la scène
+    var sceneFactory = new SceneFactory();
+    var scene = sceneFactory.get(null);
     
     function animate() {
         //calcul du temps
@@ -18,7 +20,9 @@ function main() {
         GL.clear(GL.COLOR_BUFFER_BIT | GL.DEPTH_BUFFER_BIT);        
         
         //mettre a jour le jeu
-        manager.update(dt)
+        scene.update(dt)
+        
+        scene.render();
 
         lastTime = timeNow
         window.requestAnimationFrame(animate)
