@@ -3,10 +3,22 @@
 <html>
   <head>
     <meta charset='utf-8'/>
+    <style>
+      #overlay {
+          position: absolute;
+          left: 10px;
+          top: 10px;
+          color: #FFFFFF;
+      }
+    </style>
   </head>
   <body style='margin:0px' onload='main()'>
     <canvas id='canvas'
-            style='position: absolute; background-color: black;'></canvas>
+            style='position: absolute; background-color: black;'>
+    </canvas>
+    <div id="overlay">
+      <div><span id="fps"></span></div>
+    </div>
   </body>
   <script type="text/javascript" src="external/js/gl-matrix.js"></script>
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/async/1.5.0/async.min.js"></script>
@@ -29,6 +41,9 @@
   <script type="text/javascript" src="bld/Events/UpdateRequestSubscriber.js"></script>
   <script type="text/javascript" src="bld/Events/RenderRequestEvent.js"></script>
   <script type="text/javascript" src="bld/Events/RenderRequestSubscriber.js"></script>
+  <script type="text/javascript" src="bld/Events/UpdateRequestSubscriber.js"></script>
+  <script type="text/javascript" src="bld/Events/RegisterShaderEvent.js"></script>
+  <script type="text/javascript" src="bld/Events/RegisterShaderSubscriber.js"></script>
   <script type="text/javascript" src="bld/Events/RegisterCameraEvent.js"></script>
   <script type="text/javascript" src="bld/Events/RegisterCameraSubscriber.js"></script>
   <script type="text/javascript" src="bld/Events/KeyPressedEvent.js"></script>
@@ -39,7 +54,7 @@
   <script type="text/javascript" src="bld/Shaders/ShaderParam.js"></script>
   <script type="text/javascript" src="bld/Shaders/Shader.js"></script>
   <script type="text/javascript" src="bld/Shaders/VertexBasic.js"></script>
-  <script type="text/javascript" src="bld/Shaders/FragmentBasic.js"></script>
+  <script type="text/javascript" src="bld/Shaders/VertexTerrain.js"></script>
   <script type="text/javascript" src="bld/Shaders/FragmentBasic.js"></script>
   <script type="text/javascript" src="bld/Shaders/ShaderParams/ShaderParam.js"></script>
   <script type="text/javascript" src="bld/Shaders/ShaderParams/ShaderAttribute.js"></script>
@@ -48,6 +63,7 @@
   <!--Meshes-->
   <script type="text/javascript" src="bld/Rendering/Meshes/Mesh.js"></script>
   <script type="text/javascript" src="bld/Rendering/Meshes/CubeMesh.js"></script>
+  <script type="text/javascript" src="bld/Rendering/Meshes/TerrainMesh.js"></script>
   <!--Materials-->
   <script type="text/javascript" src="bld/Rendering/Materials/Material.js"></script>
   <script type="text/javascript" src="bld/Rendering/Materials/UniformMaterial.js"></script>
@@ -67,6 +83,7 @@
   <script type="text/javascript" src="bld/Objects/Cameras/Camera.js"></script>
   <script type="text/javascript" src="bld/Objects/GameObject.js"></script>
   <script type="text/javascript" src="bld/Objects/Cube.js"></script>
+  <script type="text/javascript" src="bld/Objects/Ground.js"></script>
   <script type="text/javascript" src="bld/Objects/Players/Player.js"></script>
   
   <!--COMPONENTS -->

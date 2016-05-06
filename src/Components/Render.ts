@@ -5,13 +5,18 @@
  */
 class Render extends Component implements RenderRequestSubscriber{
     subscriberId: number;
+    shaderProgram: ShaderProgram;
     constructor(gameObject: GameObject, public mesh: Mesh, public material: Material) {
         super(gameObject);   
         this.gameObject.eventManager.subscribe(this, "RenderRequestEvent");
     }
     
     render(renderer: Renderer){
-        renderer.drawMesh(this);
+        if(this.shaderProgram == null){
+            renderer.drawMesh(this);
+        }else{
+            renderer.drawMeshWithShader(this, this.shaderProgram);
+        }
     }
     
     getLocation(){

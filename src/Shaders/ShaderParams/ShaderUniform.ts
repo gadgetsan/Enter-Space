@@ -9,13 +9,13 @@ class ShaderUniform extends ShaderParam{
         this.location = GL.getUniformLocation(program.program, name);
         this.valueStack = [];
     }
-    
+
     set(value: any){
         this.value = value;
-        if(this.valueType == "Matrix4fv"){     
+        if(this.valueType == "Matrix4fv"){
             GL.uniformMatrix4fv(this.location, false, new Float32Array(value));
         }else if(this.valueType == "Vector3fv"){
-            GL.uniform3fv(this.location, value);            
+            GL.uniform3fv(this.location, value);
         }
     }
     push(newValue: any){
@@ -24,7 +24,7 @@ class ShaderUniform extends ShaderParam{
         mat4.multiply(actualNewValue, this.value, newValue);
         this.set(actualNewValue);
     }
-    
+
     pop(){
         this.value = this.valueStack.pop();
     }

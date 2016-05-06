@@ -21,10 +21,12 @@ class ShaderProgram {
     }
     
     use() {
+        GL.linkProgram(this.program);
         GL.useProgram(this.program);
     }
     
     startRender(camera: Camera){
+        //console.log("starting to render " + this.vertexShader.name + " and " + this.fragmentShader.name);
         this.vertexShader.startRender(this, camera);
         this.fragmentShader.startRender(this, camera);
     }

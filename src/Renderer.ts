@@ -1,32 +1,49 @@
 /**
  * Renderer
  */
-class Renderer implements RegisterCameraSubscriber{
+class Renderer implements RegisterCameraSubscriber, RegisterShaderSubscriber{
     pMatrix: GLM.IArray;
     baseMVMatrix: GLM.IArray;
     subscriberId: number;
     currentCamera: Camera;
+    shaders: Array<ShaderProgram>;
     
-    constructor(public shaderProgram: ShaderProgram, public eventManager: EventManager) {
+    constructor(public mainShader: ShaderProgram, public eventManager: EventManager) {
         this.pMatrix = mat4.create();
         this.eventManager.subscribe(this, "RegisterCameraEvent");
+        this.eventManager.subscribe(this, "RegisterShaderEvent");
         //Pi/2 = 1.5707963267
         mat4.perspective(this.pMatrix, 0.785, CANVAS.width / CANVAS.height, 0.1, 1000);
+        this.shaders = [];
     }
     
     setShader(shaderProgram: ShaderProgram){
         //1. mettre à jour les buffers si ils doivent l'être (avec bindbuffer & bufferData)
         //2. on affiche l'objet (avec un buffer ou un array)
-        this.shaderProgram = shaderProgram;
+        this.mainShader = shaderProgram;
+    }
+    
+    registerShader(shader: ShaderProgram){
+        this.shaders.push(shader);
     }
     
     startRender(){
-        this.shaderProgram.startRender(this.getCamera());
+        //on va initialiser tout les shaders
+        this.shaders.forEach(shader=>{            
+            shader.startRender(this.getCamera());
+        })        
+        this.mainShader.startRender(this.getCamera());
     }
     drawMesh(render: Render){
         //on va demander au program de shader d'aller chercher les données qu'il as besoin
         //TODO: si l'objet render possède un autre Shader
-        this.shaderProgram.renderElement(render);
+        this.mainShader.use();
+        this.mainShader.renderElement(render);
+    }
+    
+    drawMeshWithShader(render: Render, shader: ShaderProgram){
+        shader.use();
+        shader.renderElement(render);
     }
     
     registerCamera(camera: Camera){

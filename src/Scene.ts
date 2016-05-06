@@ -31,6 +31,7 @@ class Scene {
         this.addGameObject(this.gameObjectFactory.get("Player"));        
         this.addGameObject(this.gameObjectFactory.get("Cube"));
         //on va créer une 'grille' de cubes
+        /*
         var sideCount = 5;
         for(var i=-sideCount; i<sideCount;i++){
            for(var j=-sideCount; j<sideCount;j++){
@@ -39,6 +40,10 @@ class Scene {
                 this.addGameObject(cube);
             } 
         }
+        */ 
+        var ground = this.gameObjectFactory.get("Ground");
+        ground.moveTo([0, -2.0, 0]);
+        this.addGameObject(ground);
         
         
     }
@@ -48,7 +53,7 @@ class Scene {
     }
     
     update(dt: number){
-        this.keyboardManager.sendEvents();
+        this.keyboardManager.sendEvents(dt);
         this.eventManager.publish(new UpdateRequestEvent(dt));
     }
     

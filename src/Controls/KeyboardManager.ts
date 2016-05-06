@@ -22,11 +22,11 @@ class KeyboardManager {
         this.keyPressedArray[event.keyCode] = false;         
     }
     
-    sendEvents(){        
+    sendEvents(dt: number){        
         //pour chaque touche appuyée on lance un event
         this.keyPressedArray.forEach((value, key)=>{
             if(value){              
-                this.eventManager.publish(new KeyPressedEvent(key))
+                this.eventManager.publish(new KeyPressedEvent(key, dt))
             }            
         })
     }

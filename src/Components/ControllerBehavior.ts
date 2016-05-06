@@ -10,9 +10,9 @@ class ControllerBehavior extends Component implements KeyPressedSubscriber{
         this.gameObject.eventManager.subscribe(this, "KeyPressedEvent");
     }
     
-    keyPressed(key: number){
+    keyPressed(key: number, dt: number){
         var transform = <Transform>this.gameObject.components["transform"];
-        var moveSpeed = 0.1;
+        var moveSpeed = 0.01*dt;
         switch (key)
         {
             case KeyCode.KEY_W :
