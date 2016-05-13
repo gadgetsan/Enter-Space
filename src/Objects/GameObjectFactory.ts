@@ -12,6 +12,7 @@ class GameObjectFactory {
         }else{
             var gameObject = Object.create(window[objectType].prototype);
             gameObject.constructor.apply(gameObject, [this.eventManager]);
+            gameObject.setName(objectType);
             return gameObject;
         }
     }

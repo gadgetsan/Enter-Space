@@ -12,6 +12,7 @@ class Render extends Component implements RenderRequestSubscriber{
     }
     
     render(renderer: Renderer){
+        console.log("Rendering " + this.gameObject.name)
         if(this.shaderProgram == null){
             renderer.drawMesh(this);
         }else{

@@ -23,8 +23,10 @@ class RenderManager implements RegisterRendererSubscriber {
     }
     
     render(){        
+        console.log("rendering with main renderer");
         this.mainRenderer.startRender();
         this.eventManager.publish(new RenderRequestEvent(this.mainRenderer));
+        console.log("rendering with other renderers");
         //on roule la requête de rendu pour chaque element pour chaque renderer        
         this.renderers.forEach(renderer=>{
             renderer.startRender();

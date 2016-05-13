@@ -3,7 +3,8 @@
  */
 class GameObject {
     
-    components: Array<Component>;    
+    components: Array<Component>;
+    name: string;    
     
     constructor(public eventManager: EventManager) {    
         this.components = new Array();    
@@ -18,6 +19,11 @@ class GameObject {
         //TODO: avertir les autres components que la transform a changé
        }
    }
+   
+   setName(name: string){
+       this.name = name;
+   }
+   
    
    getLocation(){       
        if(!this.components["transform"]){
