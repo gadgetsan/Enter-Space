@@ -4,10 +4,9 @@
  * Objet Contenant tout les objets, il s'occuperas de dispatcher les evènements à travers la hierarchie d'objets
  */
 class Scene {
-        
-    shaderProgram: ShaderProgram;
-    renderer: Renderer;
+    renderManager: RenderManager;
     keyboardManager: KeyboardManager;
+    mouseManager: MouseManager;
     
     gameObjects: Array<GameObject>;
     
@@ -15,14 +14,10 @@ class Scene {
     
     gameObjectFactory: GameObjectFactory;
     
-    constructor(public eventManager: EventManager) {
+    constructor(public eventManager: EventManager) { 
+        this.renderManager = new RenderManager(this.eventManager, new ShaderProgram(new VertexBasic(), new FragmentBasic()));
         this.keyboardManager = new KeyboardManager(this.eventManager);
-        
-        this.shaderProgram = new ShaderProgram(new VertexBasic(), new FragmentBasic());
-        this.shaderProgram.use();
-        
-        this.renderer = new Renderer(this.shaderProgram, this.eventManager);
-        
+        this.mouseManager = new MouseManager(this.eventManager);   
         this.gameObjectFactory = new GameObjectFactory(this.eventManager);
         
         //Setup Initial pour la grille
@@ -46,6 +41,11 @@ class Scene {
         this.addGameObject(ground);
         
         
+        var ressource = this.gameObjectFactory.get("Ressource");
+        ressource.moveTo([-4.0, -2.5, 0]);
+        this.addGameObject(ressource);
+        
+        
     }
     
     addGameObject(object: GameObject){
@@ -58,10 +58,11 @@ class Scene {
     }
     
     render(){
-        //on commence par initialiser le rendu
-        this.renderer.startRender();
-        //pour chaque objet de la hierarchie, on leur demande de s'afficher
-        this.eventManager.publish(new RenderRequestEvent(this.renderer));
+        this.renderManager.render();
+    }
+    
+    getTargetedGameObject(location: GLM.IArray, direction: GLM.IArray){
+        
     }
     
     

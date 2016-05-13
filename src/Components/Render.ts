@@ -22,4 +22,10 @@ class Render extends Component implements RenderRequestSubscriber{
     getLocation(){
         return this.gameObject.getLocation();
     }
+    
+    //pour déterminer si on affiche dans le rendu de picking
+    isPickable(){
+        //TODO: aller voir si l'object parent a un composant permettant d'être sélectionné
+        return true;
+    }
 }

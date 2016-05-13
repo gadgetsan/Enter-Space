@@ -5,6 +5,7 @@ class ShaderAttribute extends ShaderParam{
     location: number;
     constructor(name: string, program: ShaderProgram) {
         super(name, program);
+        //console.log(`Initialising ${this.name}`);
         this.location = GL.getAttribLocation(program.program, name);
         GL.enableVertexAttribArray(this.location);
     }

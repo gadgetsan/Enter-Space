@@ -14,5 +14,10 @@ class Camera extends Component {
         var transform = <Transform>this.gameObject.components["transform"];
         return transform.location;
     }
+    getRotation(){
+        //la position est la position du gameObject;
+        var transform = <Transform>this.gameObject.components["transform"];
+        return transform.rotation;
+    }
     
 }

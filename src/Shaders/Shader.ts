@@ -20,6 +20,7 @@ class Shader {
         GL.shaderSource(this.shader, this.source);
         GL.compileShader(this.shader);
         
+        //console.log(`Compiling Shader ${this.name}`)
         //si le shader n'as pas pu être compilé
         if(!GL.getShaderParameter(this.shader, GL.COMPILE_STATUS)){
             alert(`ERROR IN ${this.typeString} 

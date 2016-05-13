@@ -10,7 +10,7 @@ class TerrainMesh extends Mesh{
         //si les buffer statique sont déjà défini, on ne les redéfini pas
         this.drawingType = GL.TRIANGLE_STRIP;
         var size = 100.0;
-        var blockNum = 5;
+        var blockNum = 100;
         var blockSize = size/blockNum;
         this.vertexCount = (blockNum+1)*(blockNum+1);
         

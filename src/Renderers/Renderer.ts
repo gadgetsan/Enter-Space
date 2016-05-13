@@ -7,8 +7,9 @@ class Renderer implements RegisterCameraSubscriber, RegisterShaderSubscriber{
     subscriberId: number;
     currentCamera: Camera;
     shaders: Array<ShaderProgram>;
+    mainShader: ShaderProgram;
     
-    constructor(public mainShader: ShaderProgram, public eventManager: EventManager) {
+    constructor(public eventManager: EventManager) {
         this.pMatrix = mat4.create();
         this.eventManager.subscribe(this, "RegisterCameraEvent");
         this.eventManager.subscribe(this, "RegisterShaderEvent");
@@ -21,6 +22,7 @@ class Renderer implements RegisterCameraSubscriber, RegisterShaderSubscriber{
         //1. mettre à jour les buffers si ils doivent l'être (avec bindbuffer & bufferData)
         //2. on affiche l'objet (avec un buffer ou un array)
         this.mainShader = shaderProgram;
+        this.mainShader.use();
     }
     
     registerShader(shader: ShaderProgram){
@@ -30,18 +32,20 @@ class Renderer implements RegisterCameraSubscriber, RegisterShaderSubscriber{
     startRender(){
         //on va initialiser tout les shaders
         this.shaders.forEach(shader=>{            
+            shader.use();
             shader.startRender(this.getCamera());
-        })        
+        })                    
+        this.mainShader.use();
         this.mainShader.startRender(this.getCamera());
     }
     drawMesh(render: Render){
         //on va demander au program de shader d'aller chercher les données qu'il as besoin
-        //TODO: si l'objet render possède un autre Shader
         this.mainShader.use();
         this.mainShader.renderElement(render);
     }
     
     drawMeshWithShader(render: Render, shader: ShaderProgram){
+        //console.log(`Drawing With Shader ${shader.vertexShader.name} AND ${shader.fragmentShader.name}`)
         shader.use();
         shader.renderElement(render);
     }
@@ -54,8 +58,6 @@ class Renderer implements RegisterCameraSubscriber, RegisterShaderSubscriber{
     }
     
     /*
-    
-    
     setCamera(camera: Camera){
         this.camera = camera;
     }

@@ -46,20 +46,32 @@
   <script type="text/javascript" src="bld/Events/RegisterShaderSubscriber.js"></script>
   <script type="text/javascript" src="bld/Events/RegisterCameraEvent.js"></script>
   <script type="text/javascript" src="bld/Events/RegisterCameraSubscriber.js"></script>
+  <script type="text/javascript" src="bld/Events/RegisterRendererEvent.js"></script>
+  <script type="text/javascript" src="bld/Events/RegisterRendererSubscriber.js"></script>
   <script type="text/javascript" src="bld/Events/KeyPressedEvent.js"></script>
   <script type="text/javascript" src="bld/Events/KeyPressedSubscriber.js"></script>
+  <script type="text/javascript" src="bld/Events/PlayerMovedEvent.js"></script>
+  <script type="text/javascript" src="bld/Events/PlayerMovedSubscriber.js"></script>
+  <script type="text/javascript" src="bld/Events/MouseMovedEvent.js"></script>
+  <script type="text/javascript" src="bld/Events/MouseMovedSubscriber.js"></script>
+  <script type="text/javascript" src="bld/Events/MouseClickedEvent.js"></script>
+  <script type="text/javascript" src="bld/Events/MouseClickedSubscriber.js"></script>
   
   <!--RENDERING ELEMENTS -->
+  <script type="text/javascript" src="bld/FrameBufferTexture.js"></script>
   <script type="text/javascript" src="bld/Shaders/ShaderProgram.js"></script>
   <script type="text/javascript" src="bld/Shaders/ShaderParam.js"></script>
   <script type="text/javascript" src="bld/Shaders/Shader.js"></script>
-  <script type="text/javascript" src="bld/Shaders/VertexBasic.js"></script>
-  <script type="text/javascript" src="bld/Shaders/VertexTerrain.js"></script>
-  <script type="text/javascript" src="bld/Shaders/FragmentBasic.js"></script>
+  <script type="text/javascript" src="bld/Shaders/Vertex/VertexBasic.js"></script>
+  <script type="text/javascript" src="bld/Shaders/Vertex/VertexTerrain.js"></script>
+  <script type="text/javascript" src="bld/Shaders/Vertex/VertexPicking.js"></script>
+  <script type="text/javascript" src="bld/Shaders/Fragment/FragmentBasic.js"></script>
   <script type="text/javascript" src="bld/Shaders/ShaderParams/ShaderParam.js"></script>
   <script type="text/javascript" src="bld/Shaders/ShaderParams/ShaderAttribute.js"></script>
   <script type="text/javascript" src="bld/Shaders/ShaderParams/ShaderUniform.js"></script>
-  <script type="text/javascript" src="bld/Renderer.js"></script>
+  <script type="text/javascript" src="bld/Renderers/Renderer.js"></script>
+  <script type="text/javascript" src="bld/Renderers/PickingRenderer.js"></script>
+  <script type="text/javascript" src="bld/Renderers/RenderManager.js"></script>
   <!--Meshes-->
   <script type="text/javascript" src="bld/Rendering/Meshes/Mesh.js"></script>
   <script type="text/javascript" src="bld/Rendering/Meshes/CubeMesh.js"></script>
@@ -76,6 +88,7 @@
   
   <!--CONTROL ELEMENTS -->
   <script type="text/javascript" src="bld/Controls/KeyboardManager.js"></script>
+  <script type="text/javascript" src="bld/Controls/MouseManager.js"></script>
   <script type="text/javascript" src="bld/Utilities/KeyCode.js"></script>
   
   <!--GAME ELEMENTS -->
@@ -85,6 +98,7 @@
   <script type="text/javascript" src="bld/Objects/Cube.js"></script>
   <script type="text/javascript" src="bld/Objects/Ground.js"></script>
   <script type="text/javascript" src="bld/Objects/Players/Player.js"></script>
+  <script type="text/javascript" src="bld/Objects/Ressource.js"></script>
   
   <!--COMPONENTS -->
   <script type="text/javascript" src="bld/Components/Component.js"></script>

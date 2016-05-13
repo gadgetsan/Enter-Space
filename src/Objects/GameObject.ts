@@ -10,6 +10,7 @@ class GameObject {
     }
     
    moveTo(newLocation: GLM.IArray){
+       //console.log(`Changing Location to ${newLocation}`);
        if(!this.components["transform"]){
            console.error("this GameObject cannot be moved because it does not have a Transform Component");
        }else{           

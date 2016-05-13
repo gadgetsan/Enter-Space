@@ -25,6 +25,7 @@ class EventManager {
     
     publish(event: EventBase){
         var eventName = event.typeName;
+        //console.log(`Event of type ${eventName} Trigered`);
         if(this.subscribers[eventName] != null){
             this.subscribers[eventName].forEach(subscriber =>{
                 event.notifySubscriber(subscriber);

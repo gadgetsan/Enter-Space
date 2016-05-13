@@ -7,4 +7,6 @@ class Transform extends Component{
     constructor(gameObject: GameObject, public location:GLM.IArray, public rotation: GLM.IArray, public size: number) {
         super(gameObject);
     }
+    
+    
 }

@@ -21,8 +21,9 @@ class ShaderProgram {
     }
     
     use() {
-        GL.linkProgram(this.program);
+        //GL.linkProgram(this.program);
         GL.useProgram(this.program);
+        //console.log(`Using Shader ${this.vertexShader.name} With ${this.fragmentShader.name}`)
     }
     
     startRender(camera: Camera){

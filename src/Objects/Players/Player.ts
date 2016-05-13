@@ -9,8 +9,8 @@ class Player extends GameObject{
         super(eventManager);
         
         //on créé nos composants pour controller
-        this.components["Behavior"] = new ControllerBehavior(this);
-        this.components["Camera"] = new Camera(this);
+        this.components["behavior"] = new ControllerBehavior(this);
+        this.components["camera"] = new Camera(this);
         this.components["transform"] = new Transform(this, vec3.create(), mat4.create(), 1.0);
     }
     /*

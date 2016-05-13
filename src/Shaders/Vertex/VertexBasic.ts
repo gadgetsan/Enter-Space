@@ -1,40 +1,40 @@
 /**
- * VertexTerrain
+ * VertexBasic
  */
-class VertexTerrain extends  Shader {
+class VertexBasic extends  Shader {
     /**
      *
      */
     constructor() {
         super();
-        this.name = 'VertexTerrain';
+        this.name = 'VertexBasic';
         this.type = GL.VERTEX_SHADER;
         this.source = `
-                        attribute vec4 color;
-                        attribute vec3 position;
+                        attribute vec4 color_VertexBasic;
+                        attribute vec3 position_VertexBasic;
                         
-                        uniform mat4 mvMatrix;
-                        uniform mat4 pMatrix;
-                        uniform vec3 offset;
+                        uniform mat4 mvMatrix_VertexBasic;
+                        uniform mat4 pMatrix_VertexBasic;
+                        uniform vec3 offset_VertexBasic;
                         
                         varying vec4 vColor;
                         void main(void) {
-                            gl_Position = pMatrix * mvMatrix * vec4(position-offset, 1.0);
-                            vColor=color;
+                            gl_Position = pMatrix_VertexBasic * mvMatrix_VertexBasic * vec4(position_VertexBasic-offset_VertexBasic, 1.0);
+                            vColor=color_VertexBasic;
                         }
                         `
     }
     
     init(program: ShaderProgram){     
-        console.log("initialising Shader");
-        program.params["pMatrix"] = new ShaderUniform("pMatrix", program, "Matrix4fv");
-        program.params["mvMatrix"] = new ShaderUniform("mvMatrix", program, "Matrix4fv");
+        //console.log("initialising Shader " + this.name);
+        program.params["pMatrix"] = new ShaderUniform("pMatrix_VertexBasic", program, "Matrix4fv");
+        program.params["mvMatrix"] = new ShaderUniform("mvMatrix_VertexBasic", program, "Matrix4fv");
         
         //Utiliser pour déplacer tout les sommets de manière à ne pas devoir réenvoyer toute les données
-        program.params["offset"] = new ShaderUniform("offset", program, "Vector3fv");
+        program.params["offset"] = new ShaderUniform("offset_VertexBasic", program, "Vector3fv");
 
-        program.params["position"] = new ShaderAttribute("position", program);
-        program.params["color"]  = new ShaderAttribute("color", program);
+        program.params["position"] = new ShaderAttribute("position_VertexBasic", program);
+        program.params["color"]  = new ShaderAttribute("color_VertexBasic", program);
         
         /*
         program.params["pMatrix"] = new ShaderParam("uniform", "Matrix4fv", "global", "getProjectionMatrix", program.program, "pMatrix", false, 1);
@@ -48,7 +48,8 @@ class VertexTerrain extends  Shader {
         */
 
     }
-    startRender(program: ShaderProgram, camera: Camera){        
+    startRender(program: ShaderProgram, camera: Camera){       
+        //console.log("starting  Shader " + this.name); 
         //TODO: on va aller chercher les informations d'affichage de la camera pour connaitre la perspective
         var perspectiveMatrix = [];
         mat4.perspective(perspectiveMatrix, 45, CANVAS.width/ CANVAS.height, 0.1, 1000.0);
@@ -57,12 +58,14 @@ class VertexTerrain extends  Shader {
         
         //TODO: on irais chercher les informations de la transformation....    
         var mvMatrix = mat4.create();   
+        mat4.multiply(mvMatrix, mvMatrix, camera.getRotation());
         mat4.translate(mvMatrix, mvMatrix, camera.getLocation());
         program.params["mvMatrix"].set(mvMatrix);
     }
     renderElement(program: ShaderProgram, render: Render){
         //on doit push et pop la mvMatrix pour cet element
         var elementLocationMatrix = mat4.create();
+        //console.log(`Rendering at location ${render.getLocation()}`)
         mat4.translate(elementLocationMatrix, elementLocationMatrix, render.getLocation());
         program.params["mvMatrix"].push(elementLocationMatrix);
         
