@@ -36,6 +36,8 @@ class Renderer implements RegisterCameraSubscriber, RegisterShaderSubscriber{
             shader.startRender(this.getCamera());
         })                    
         this.mainShader.use();
+        GL.clearColor(0.53725, 0.7960, 0.87843, 1.0);
+        GL.bindFramebuffer(GL.FRAMEBUFFER, null);     
         this.mainShader.startRender(this.getCamera());
     }
     drawMesh(render: Render){
@@ -48,6 +50,10 @@ class Renderer implements RegisterCameraSubscriber, RegisterShaderSubscriber{
         //console.log(`Drawing With Shader ${shader.vertexShader.name} AND ${shader.fragmentShader.name}`)
         shader.use();
         shader.renderElement(render);
+    }
+    
+    doneRendering(){
+        
     }
     
     registerCamera(camera: Camera){

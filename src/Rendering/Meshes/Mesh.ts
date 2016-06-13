@@ -6,6 +6,7 @@
 class Mesh {
     vertexLocationBuffer: VertexLocationBuffer;
     vertexIndexBuffer: VertexIndexBuffer;
+    vertexNormalBuffer: VertexNormalBuffer;
     drawingType: number;
     
     constructor() {         
@@ -13,6 +14,10 @@ class Mesh {
     
     getPositionBuffer(){
         return this.vertexLocationBuffer;
+    }
+    
+    getNormalBuffer(){
+        return this.vertexNormalBuffer;
     }
     
     getIndexBuffer(){

@@ -14,5 +14,5 @@ class UniformMaterial extends Material {
             }
         }
         this.vertexColorBuffer = new VertexColorBuffer(data);
-    }
+    }    
 }

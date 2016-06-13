@@ -3,9 +3,11 @@
  * 
  * Permet de gèrer le déplacement de la souris
  */
-class MouseManager {
+class MouseManager implements HoveringObjectSubscriber{
     pickingRenderer: PickingRenderer;
+    subscriberId: number;
     locked: boolean;
+    hoveringObject: GameObject;
     constructor(public eventManager: EventManager) {
         this.locked = false;
         this.pickingRenderer = new PickingRenderer(eventManager);
@@ -16,6 +18,11 @@ class MouseManager {
         document.addEventListener("mousemove", this.onMouseMove.bind(this), false);  
         document.addEventListener("click", this.onMouseClick.bind(this), false);  
         this.requestMouseCapture();
+        this.hoveringObject = null;
+    }
+    
+    hovering(object: GameObject){
+        this.hoveringObject = object;
     }
     
     //Ces fonctions seront appelées avec un callback alors on les bind au present 'this'

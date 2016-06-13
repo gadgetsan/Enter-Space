@@ -3,7 +3,7 @@
  * 
  * Composant permettant de donner le rendu de l'objet
  */
-class Render extends Component implements RenderRequestSubscriber{
+class Render extends Component{
     subscriberId: number;
     shaderProgram: ShaderProgram;
     constructor(gameObject: GameObject, public mesh: Mesh, public material: Material) {
@@ -12,21 +12,24 @@ class Render extends Component implements RenderRequestSubscriber{
     }
     
     render(renderer: Renderer){
-        console.log("Rendering " + this.gameObject.name)
+        //console.log("Rendering " + this.gameObject.name)
         if(this.shaderProgram == null){
             renderer.drawMesh(this);
         }else{
             renderer.drawMeshWithShader(this, this.shaderProgram);
-        }
+        }       
+        
     }
     
     getLocation(){
         return this.gameObject.getLocation();
     }
     
-    //pour déterminer si on affiche dans le rendu de picking
-    isPickable(){
-        //TODO: aller voir si l'object parent a un composant permettant d'être sélectionné
-        return true;
+    getSize(){
+        return this.gameObject.getSize();
+    }
+    
+    changeColor(colorR: number, colorG: number, colorB: number){
+        this.material = new UniformMaterial([colorR, colorG, colorB, 1.0], this.mesh.getVertexCount());
     }
 }

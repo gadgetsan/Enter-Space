@@ -14,6 +14,8 @@ class ShaderUniform extends ShaderParam{
         this.value = value;
         if(this.valueType == "Matrix4fv"){
             GL.uniformMatrix4fv(this.location, false, new Float32Array(value));
+        }else if(this.valueType == "Matrix3fv"){
+            GL.uniformMatrix3fv(this.location, false, new Float32Array(value));
         }else if(this.valueType == "Vector3fv"){
             GL.uniform3fv(this.location, value);
         }else if(this.valueType == "Vector4fv"){

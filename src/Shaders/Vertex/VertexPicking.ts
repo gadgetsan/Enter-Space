@@ -1,7 +1,7 @@
 /**
  * VertexPicking
  */
-class VertexPicking extends  Shader {
+class VertexPicking extends VertexBasic {
     constructor() {
         
         super();
@@ -36,7 +36,7 @@ class VertexPicking extends  Shader {
         //console.log("starting  Shader " + this.name); 
         //TODO: on va aller chercher les informations d'affichage de la camera pour connaitre la perspective
         var perspectiveMatrix = [];
-        mat4.perspective(perspectiveMatrix, 45, CANVAS.width/ CANVAS.height, 0.1, 1000.0);
+        mat4.perspective(perspectiveMatrix, 0.000001, CANVAS.width/ CANVAS.height, 0.1, 1000.0);
         
         program.params["pMatrix"].set(perspectiveMatrix);
         
@@ -47,6 +47,7 @@ class VertexPicking extends  Shader {
         program.params["mvMatrix"].set(mvMatrix);
     }
     renderElement(program: ShaderProgram, render: Render){
+        
         //on doit push et pop la mvMatrix pour cet element
         var elementLocationMatrix = mat4.create();
         //console.log(`Rendering With VertexPicking`)
@@ -54,7 +55,13 @@ class VertexPicking extends  Shader {
         program.params["mvMatrix"].push(elementLocationMatrix);
         
         //--COLOR--//
-        program.params["color"].set([0.0, 1.0, 1.0, 1.0]);
+        if(render.gameObject.components["selectable"] != null){            
+        //on va chercher la couleur à utiliser pour le rendu pour pouvoir faire le picking
+            var selectable = <Selectable>(render.gameObject.components["selectable"]);
+            program.params["color"].set([selectable.renderingColor[0], selectable.renderingColor[1], selectable.renderingColor[2], 1.0]);
+        }else{            
+            program.params["color"].set([0, 0, 0, 1.0]);
+        }
         
         //TODO: utiliser un peu mieux la OOP
         

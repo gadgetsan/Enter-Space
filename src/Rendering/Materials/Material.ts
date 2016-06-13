@@ -13,4 +13,8 @@ class Material {
     getColorBuffer(){
         return this.vertexColorBuffer;
     }
+    
+    changeColor(){
+        
+    }
 }

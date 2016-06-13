@@ -22,7 +22,7 @@ class ShaderProgram {
     
     use() {
         //GL.linkProgram(this.program);
-        console.log("using Shader " + this.vertexShader.name + " and " + this.fragmentShader.name);
+        //console.log("using Shader " + this.vertexShader.name + " and " + this.fragmentShader.name);
         GL.useProgram(this.program);
         //console.log(`Using Shader ${this.vertexShader.name} With ${this.fragmentShader.name}`)
     }

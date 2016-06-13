@@ -67,6 +67,7 @@ class VertexBasic extends  Shader {
         var elementLocationMatrix = mat4.create();
         //console.log(`Rendering at location ${render.getLocation()}`)
         mat4.translate(elementLocationMatrix, elementLocationMatrix, render.getLocation());
+        mat4.scale(elementLocationMatrix, elementLocationMatrix, [render.getSize(), render.getSize(), render.getSize()]);
         program.params["mvMatrix"].push(elementLocationMatrix);
         
         program.params["offset"].set([0,0,0]);

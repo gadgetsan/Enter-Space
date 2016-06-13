@@ -22,15 +22,43 @@ class RenderManager implements RegisterRendererSubscriber {
         this.renderers.push(renderer);
     }
     
-    render(){        
-        console.log("rendering with main renderer");
-        this.mainRenderer.startRender();
-        this.eventManager.publish(new RenderRequestEvent(this.mainRenderer));
-        console.log("rendering with other renderers");
+    render(scene: Scene){        
+        //console.log("rendering with main renderer");
+        //console.log("rendering with other renderers");
         //on roule la requête de rendu pour chaque element pour chaque renderer        
         this.renderers.forEach(renderer=>{
             renderer.startRender();
-            this.eventManager.publish(new RenderRequestEvent(renderer));
-        })        
+            //this.eventManager.publish(new RenderRequestEvent(renderer));   
+            scene.gameObjects.forEach(go =>{
+                this.renderGameObject(go, renderer);
+            })
+            //pour chaque Gameobject de la scène, on render lui et ses enfants 
+            renderer.doneRendering();
+            GL.clear(GL.COLOR_BUFFER_BIT | GL.DEPTH_BUFFER_BIT);
+        })    
+        
+        this.mainRenderer.startRender();
+        //this.eventManager.publish(new RenderRequestEvent(this.mainRenderer));        
+        scene.gameObjects.forEach(go =>{
+            this.renderGameObject(go, this.mainRenderer);
+        })
+        this.mainRenderer.doneRendering();
+        
+    }
+    
+    //methode recursive pour rendre un objet et ses enfants
+    renderGameObject(gameObject: GameObject, renderer: Renderer){
+        if(gameObject.components["render"] != null){
+            var render = <Render>gameObject.components["render"];
+            render.render(renderer);
+        }
+        
+        //ensuite si l'objet parent, à des enfants (avec un composant render) on les render
+        if(gameObject.children != null && gameObject.children.length > 0){
+            gameObject.children.forEach(child =>{
+                this.renderGameObject(child, renderer);              
+            })
+            
+        }
     }
 }

@@ -60,12 +60,14 @@
   <!--RENDERING ELEMENTS -->
   <script type="text/javascript" src="bld/FrameBufferTexture.js"></script>
   <script type="text/javascript" src="bld/Shaders/ShaderProgram.js"></script>
-  <script type="text/javascript" src="bld/Shaders/ShaderParam.js"></script>
+  <script type="text/javascript" src="bld/Shaders/ShaderParams/ShaderParam.js"></script>
   <script type="text/javascript" src="bld/Shaders/Shader.js"></script>
   <script type="text/javascript" src="bld/Shaders/Vertex/VertexBasic.js"></script>
   <script type="text/javascript" src="bld/Shaders/Vertex/VertexTerrain.js"></script>
   <script type="text/javascript" src="bld/Shaders/Vertex/VertexPicking.js"></script>
+  <script type="text/javascript" src="bld/Shaders/Vertex/VertexLightning.js"></script>
   <script type="text/javascript" src="bld/Shaders/Fragment/FragmentBasic.js"></script>
+  <script type="text/javascript" src="bld/Shaders/Fragment/FragmentLightning.js"></script>
   <script type="text/javascript" src="bld/Shaders/ShaderParams/ShaderParam.js"></script>
   <script type="text/javascript" src="bld/Shaders/ShaderParams/ShaderAttribute.js"></script>
   <script type="text/javascript" src="bld/Shaders/ShaderParams/ShaderUniform.js"></script>
@@ -76,6 +78,7 @@
   <script type="text/javascript" src="bld/Rendering/Meshes/Mesh.js"></script>
   <script type="text/javascript" src="bld/Rendering/Meshes/CubeMesh.js"></script>
   <script type="text/javascript" src="bld/Rendering/Meshes/TerrainMesh.js"></script>
+  <script type="text/javascript" src="bld/Rendering/Meshes/OctreeMesh.js"></script>
   <!--Materials-->
   <script type="text/javascript" src="bld/Rendering/Materials/Material.js"></script>
   <script type="text/javascript" src="bld/Rendering/Materials/UniformMaterial.js"></script>
@@ -84,6 +87,7 @@
   <script type="text/javascript" src="bld/Rendering/BufferTypes/VertexColorBuffer.js"></script>
   <script type="text/javascript" src="bld/Rendering/BufferTypes/VertexIndexBuffer.js"></script>
   <script type="text/javascript" src="bld/Rendering/BufferTypes/VertexLocationBuffer.js"></script>
+  <script type="text/javascript" src="bld/Rendering/BufferTypes/VertexNormalBuffer.js"></script>
   
   
   <!--CONTROL ELEMENTS -->
@@ -93,12 +97,13 @@
   
   <!--GAME ELEMENTS -->
   <script type="text/javascript" src="bld/Objects/GameObjectFactory.js"></script>
-  <script type="text/javascript" src="bld/Objects/Cameras/Camera.js"></script>
   <script type="text/javascript" src="bld/Objects/GameObject.js"></script>
   <script type="text/javascript" src="bld/Objects/Cube.js"></script>
   <script type="text/javascript" src="bld/Objects/Ground.js"></script>
   <script type="text/javascript" src="bld/Objects/Players/Player.js"></script>
   <script type="text/javascript" src="bld/Objects/Ressource.js"></script>
+  <script type="text/javascript" src="bld/Objects/OctreeObject.js"></script>
+  <script type="text/javascript" src="bld/Objects/OctreeChildren.js"></script>
   
   <!--COMPONENTS -->
   <script type="text/javascript" src="bld/Components/Component.js"></script>
@@ -106,4 +111,5 @@
   <script type="text/javascript" src="bld/Components/Transform.js"></script>
   <script type="text/javascript" src="bld/Components/Camera.js"></script>
   <script type="text/javascript" src="bld/Components/ControllerBehavior.js"></script>
+  <script type="text/javascript" src="bld/Components/Selectable.js"></script>
 </html>

@@ -1,7 +1,7 @@
 /**
  * VertexTerrain
  */
-class VertexTerrain extends  Shader {
+class VertexTerrain extends  VertexBasic {
     /**
      *
      */
@@ -36,17 +36,6 @@ class VertexTerrain extends  Shader {
 
         program.params["position"] = new ShaderAttribute("position_VertexTerrain", program);
         program.params["color"]  = new ShaderAttribute("color_VertexTerrain", program);
-        
-        /*
-        program.params["pMatrix"] = new ShaderParam("uniform", "Matrix4fv", "global", "getProjectionMatrix", program.program, "pMatrix", false, 1);
-        program.params["mvMatrix"] = new ShaderParam("uniform", "Matrix4fv", "hierarchical", "getMVMatrix", program.program, "mvMatrix", false, 1);
-        
-        //Utiliser pour déplacer tout les sommets de manière à ne pas devoir réenvoyer toute les données
-        program.params["offset"] = new ShaderParam("uniform", "Vector3fv", "local", null, program.program, "offset", false, 1);
-
-        program.params["position"] = new ShaderParam("attribute", "VertexPointer", null, null, program.program, "position", true, 3)
-        program.params["color"]  = new ShaderParam("attribute", "VertexPointer", null, null, program.program, "color", true, 4)
-        */
 
     }
     startRender(program: ShaderProgram, camera: Camera){   
@@ -69,7 +58,7 @@ class VertexTerrain extends  Shader {
         mat4.translate(elementLocationMatrix, elementLocationMatrix, render.getLocation());
         program.params["mvMatrix"].push(elementLocationMatrix);
         
-        program.params["offset"].set([0,Math.random()*5.0,0]);
+        program.params["offset"].set([0, 0, 0]);
         //TODO: utiliser un peu mieux la OOP
         
         //---POSITION--// 
